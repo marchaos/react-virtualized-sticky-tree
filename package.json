@@ -32,7 +32,7 @@
   "bugs": {
     "url": "https://github.com/marchaos/react-virtualized-sticky-tree/issues"
   },
-  "peerDependencies": {
+  "dependencies": {
     "react": "^15.6.1"
   },
   "devDependencies": {
