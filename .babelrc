@@ -1,0 +1,12 @@
+{
+  "env": {
+    "production": {
+      "plugins": [
+        "transform-react-remove-prop-types",
+        "transform-react-constant-elements",
+        "transform-react-inline-elements"
+      ]
+    }
+  },
+  "presets": ["airbnb", "es2015", "stage-0", "react"]
+}
