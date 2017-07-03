@@ -1,6 +1,16 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
-export default class StickyTree extends React.Component {
+export default class StickyTree extends React.PureComponent {
+
+    static propTypes = {
+        getChildren: PropTypes.func.isRequired,
+        getHeight: PropTypes.func.isRequired,
+        rowRenderer: PropTypes.func.isRequired,
+        root: PropTypes.any.isRequired,
+        height: PropTypes.number,
+        width: PropTypes.number
+    };
 
     static defaultProps = {
         overscanRowCount: 0,
@@ -16,20 +26,33 @@ export default class StickyTree extends React.Component {
             currNodePos: 0
         };
 
-        this.nodePosCache = this.flattenTree(this.props.root);
-        console.info(this.nodePosCache);
+        this.nodePosCache = [];
     }
 
-    flattenTree(node, nodes = [], params = { totalHeight: 0, parentIndex: undefined }) {
+    /**
+     *  Converts the consumer's tree structure into a flat array with root at index: 0,
+     *  including information about the top and height of each node.
+     *
+     *  i.e:
+     *  <pre>
+     *  [
+     *    { node: 'root', top: 0, index: 0, height: 100 },
+     *    { node: 'child1', top: 10, index: 0, parentIndex: 0 height: 10 },
+     *    ...
+     *  ]
+     *  </pre>
+     *
+     */
+    flattenTree(node, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
-        const nodeInfo = { node, top: params.totalHeight, parentIndex: params.parentIndex, index };
+        const nodeInfo = { node, top: context.totalHeight, parentIndex: context.parentIndex, index };
         nodes.push(nodeInfo);
 
-        if (params.parentIndex !== undefined) {
-            nodes[params.parentIndex].children.push(index);
+        if (context.parentIndex !== undefined) {
+            nodes[context.parentIndex].children.push(index);
         }
 
-        params.totalHeight += this.props.getHeight(node);
+        context.totalHeight += this.props.getHeight(node);
 
         const children = this.props.getChildren(node);
         if (Array.isArray(children)) {
@@ -37,29 +60,25 @@ export default class StickyTree extends React.Component {
 
             for (let i = 0; i < children.length; i++) {
                 // Need to reset parentIndex here as we are recursive.
-                params.parentIndex = index;
+                context.parentIndex = index;
                 const child = children[i];
-                this.flattenTree(child, nodes, params);
+                this.flattenTree(child, nodes, context);
             }
         }
-        nodeInfo.height = params.totalHeight - nodeInfo.top;
+        nodeInfo.height = context.totalHeight - nodeInfo.top;
 
         return nodes;
     }
 
-
-    shouldComponentUpdate(newProps, newState) {
-        return (
-            this.state.currNodePos !== newState.currNodePos ||
-            this.props.width !== newProps.width ||
-            this.props.height !== newProps.height ||
-            this.props.root !== newProps.root
-        );
+    componentWillMount() {
+        if (this.props.root) {
+            this.nodePosCache = this.flattenTree(this.props.root);
+        }
     }
 
     componentWillReceiveProps(newProps) {
         if (newProps.root !== this.props.root) {
-            console.info('new Tree');
+            this.nodePosCache = this.flattenTree(newProps.root);
         }
     }
 
@@ -71,10 +90,13 @@ export default class StickyTree extends React.Component {
         const rowRenderRange = this.getRenderRowRange();
         const path = this.getParentPath(rowRenderRange.start);
 
+        // Parent nodes to the current range.
         const indexesToRender = new Set();
         for (let i = 0; i < path.length; i++) {
             indexesToRender.add(path[i].index);
         }
+
+        // The rest of the nodes within the range.
         for (let i = rowRenderRange.start; i <= rowRenderRange.end; i++) {
             indexesToRender.add(this.nodePosCache[i].index);
         }
@@ -126,6 +148,10 @@ export default class StickyTree extends React.Component {
         return nodes;
     }
 
+    /**
+     * Determines the start and end number of the range to be rendered.
+     * @returns {{start: number, end: number}} Indexes within nodePosCache
+     */
     getRenderRowRange() {
         let start = this.state.currNodePos - this.props.overscanRowCount;
         if (start < 0) {
@@ -145,6 +171,11 @@ export default class StickyTree extends React.Component {
         return { start, end };
     }
 
+    /**
+     * Returns the parent path for the specified index within nodePosCache.
+     * @param nodeIndex
+     * @returns {Array<Node>}
+     */
     getParentPath(nodeIndex) {
         let currNode = this.nodePosCache[nodeIndex];
         const path = [currNode];
@@ -177,6 +208,10 @@ export default class StickyTree extends React.Component {
         return 0;
     }
 
+    /**
+     * Returns the closest node within nodePosCache.
+     * @param scrollTop
+     */
     findClosestNode(scrollTop) {
         let pos;
         if (scrollTop > this.state.scrollTop) {
