@@ -1,2 +1,0 @@
-
-export StickyTree from './StickyTree';
