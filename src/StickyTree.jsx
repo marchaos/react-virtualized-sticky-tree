@@ -16,57 +16,51 @@ export default class StickyTree extends React.Component {
             currNodePos: 0
         };
 
-        console.time('flatten');
-        const innerScrollHeight = this.calculateHeight(this.props.tree.root);
-        const nodes = [{ id: 'root', top: 0, node: this.props.tree.root, index: 0, height: innerScrollHeight, children: [] }];
-        this.nodePosCache = this.flattenTree(this.props.tree, this.props.tree.root, nodes);
-        console.timeEnd('flatten');
+        this.nodePosCache = this.flattenTree(this.props.root);
         console.info(this.nodePosCache);
     }
 
-    flattenTree(tree, parent, nodes = [], params = { totalHeight: 0 }) {
-        const parentIndex = nodes.length - 1;
-        for (let i = 0; i < parent.children.length; i++) {
-            const child = tree[parent.children[i]];
-            const childInfo = { id: child.id, top: params.totalHeight, parentIndex, index: nodes.length, children: [] };
-            params.totalHeight += this.props.getHeight(child.id);
+    flattenTree(node, nodes = [], params = { totalHeight: 0, parentIndex: undefined }) {
+        const index = nodes.length;
+        const nodeInfo = { node, top: params.totalHeight, parentIndex: params.parentIndex, index };
+        nodes.push(nodeInfo);
 
-            nodes.push(childInfo);
-            nodes[parentIndex].children.push(childInfo.index);
-
-            if (child.children.length > 0) {
-                this.flattenTree(tree, child, nodes, params);
-            }
-            childInfo.height = params.totalHeight - childInfo.top;
+        if (params.parentIndex !== undefined) {
+            nodes[params.parentIndex].children.push(index);
         }
+
+        params.totalHeight += this.props.getHeight(node);
+
+        const children = this.props.getChildren(node);
+        if (Array.isArray(children)) {
+            nodeInfo.children = [];
+
+            for (let i = 0; i < children.length; i++) {
+                // Need to reset parentIndex here as we are recursive.
+                params.parentIndex = index;
+                const child = children[i];
+                this.flattenTree(child, nodes, params);
+            }
+        }
+        nodeInfo.height = params.totalHeight - nodeInfo.top;
+
         return nodes;
     }
+
 
     shouldComponentUpdate(newProps, newState) {
         return (
             this.state.currNodePos !== newState.currNodePos ||
             this.props.width !== newProps.width ||
             this.props.height !== newProps.height ||
-            this.props.tree !== newProps.tree
+            this.props.root !== newProps.root
         );
     }
 
     componentWillReceiveProps(newProps) {
-        if (newProps.tree !== this.props.tree) {
+        if (newProps.root !== this.props.root) {
             console.info('new Tree');
         }
-    }
-
-    calculateHeight(parent) {
-        let height = 0;
-        parent.children.forEach(id => {
-            height += this.props.getHeight(parent.id);
-            if (this.props.tree[id].children.length > 0) {
-                height += this.calculateHeight(this.props.tree[id]);
-            }
-        });
-
-        return height;
     }
 
     getChildContainerStyle(child, top) {
@@ -84,6 +78,7 @@ export default class StickyTree extends React.Component {
         for (let i = rowRenderRange.start; i <= rowRenderRange.end; i++) {
             indexesToRender.add(this.nodePosCache[i].index);
         }
+
         if (this.props.renderRoot) {
             return (
                 <ul className="sticky-tree-list">
@@ -96,7 +91,7 @@ export default class StickyTree extends React.Component {
 
     renderParentContainer(parent, className, indexesToRender) {
         return (
-            <ul key={parent.id} className={className} style={{ position: 'absolute', width: '100%' }}>
+            <ul key={parent.node} className={className} style={{ position: 'absolute', width: '100%' }}>
                 {this.renderChildren(parent, indexesToRender)}
             </ul>
         );
@@ -104,8 +99,8 @@ export default class StickyTree extends React.Component {
 
     renderChildWithChildren(child, top, indexesToRender) {
         return (
-            <li key={child.id} style={this.getChildContainerStyle(child, top)}>
-                {this.props.rowRenderer(child.id)}
+            <li key={child.node} style={this.getChildContainerStyle(child, top)}>
+                {this.props.rowRenderer(child.node)}
                 {this.renderParentContainer(child, 'parent-node', indexesToRender)}
             </li>
         );
@@ -118,10 +113,10 @@ export default class StickyTree extends React.Component {
             const child = this.nodePosCache[index];
 
             if (indexesToRender.has(index)) {
-                if (child.children && child.children.length > 0) {
+                if (child.children) {
                     nodes.push(this.renderChildWithChildren(child, top, indexesToRender));
                 } else {
-                    nodes.push(<li key={child.id} style={this.getChildContainerStyle(child, top)}>{this.props.rowRenderer(child.id)}</li>);
+                    nodes.push(<li key={child.node} style={this.getChildContainerStyle(child, top)}>{this.props.rowRenderer(child.node)}</li>);
                 }
             }
             // Needs to be on the outside so that we add the the top even if
