@@ -1,5 +1,5 @@
 # react-virtualized-sticky-tree
-A React component for efficiently rendering tree like structures with support for position: sticky
+A React component for efficiently rendering tree like structures with support for position: sticky. `react-virtualized-sticky-tree` uses a similar API to [react-virtualized](https://github.com/bvaughn/react-virtualized).
 
 ## Getting Started
 
@@ -45,7 +45,7 @@ render(
 
 ## Dynamic Height Container
 
-If the containing element of your tree has a dynamic height, you can use https://github.com/souporserious/react-measure to provide the width and height to sticky-tree so that it can resize to the available width.
+If the containing element of your tree has a dynamic height, you can use [react-measure](https://github.com/souporserious/react-measure) to provide the width and height to sticky-tree so that it can resize to the available width.
 
 `npm install react-measure --save`
 
