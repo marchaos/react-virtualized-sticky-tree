@@ -51,6 +51,7 @@ If the containing element of your tree has a dynamic height, you can use [react-
 
 `npm install react-measure --save`
 
+as a HOC:
 ```js
 const MeasuredTree = withContentRect('bounds')(({ measureRef, measure, contentRect }) => (
   <div ref={measureRef} className="sticky-wrapper">
@@ -66,6 +67,31 @@ const MeasuredTree = withContentRect('bounds')(({ measureRef, measure, contentRe
     />
   </div>
 ));
+```
+or with a within render()
+
+```js
+<Measure
+    bounds={true}
+    onResize={(contentRect) => {this.setState({ dimensions: contentRect.bounds });}}
+>
+    {({ measureRef }) => {
+
+        return (<div ref={measureRef} className="sticky-tree-wrapper">
+            <StickyTree
+                width={this.state.dimensions.width}
+                height={this.state.dimensions.height}
+                root={0}
+                renderRoot={true}
+                rowRenderer={this.rowRenderer}
+                getChildren={this.getChildren}
+                getHeight={() => 30}
+                overscanRowCount={20}
+            />
+        </div>)
+    }
+    }
+</Measure>
 ```
 
 ## Supported Browsers
