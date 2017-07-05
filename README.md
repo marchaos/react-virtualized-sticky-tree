@@ -75,9 +75,7 @@ or with a within render()
     bounds={true}
     onResize={(contentRect) => {this.setState({ dimensions: contentRect.bounds });}}
 >
-    {({ measureRef }) => {
-
-        return (
+    {({ measureRef }) => 
           <div ref={measureRef} className="sticky-tree-wrapper">
               <StickyTree
                   width={this.state.dimensions.width}
@@ -90,9 +88,7 @@ or with a within render()
                   overscanRowCount={20}
               />
           </div>
-        )
     }
-}
 </Measure>
 ```
 
