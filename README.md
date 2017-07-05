@@ -68,7 +68,7 @@ const MeasuredTree = withContentRect('bounds')(({ measureRef, measure, contentRe
   </div>
 ));
 ```
-or with a within render()
+or within render()
 
 ```js
 <Measure
