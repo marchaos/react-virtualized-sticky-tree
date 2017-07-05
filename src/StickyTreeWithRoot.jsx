@@ -58,8 +58,6 @@ export default class StickyTreeWithRoot extends React.PureComponent {
             >
                 {({ measureRef }) => {
 
-                    console.info(this.state.dimensions);
-
                     return (<div ref={measureRef} className="sticky-tree-wrapper">
                         <StickyTree
                             width={this.state.dimensions.width}
