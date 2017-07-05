@@ -77,20 +77,22 @@ or with a within render()
 >
     {({ measureRef }) => {
 
-        return (<div ref={measureRef} className="sticky-tree-wrapper">
-            <StickyTree
-                width={this.state.dimensions.width}
-                height={this.state.dimensions.height}
-                root={0}
-                renderRoot={true}
-                rowRenderer={this.rowRenderer}
-                getChildren={this.getChildren}
-                getHeight={() => 30}
-                overscanRowCount={20}
-            />
-        </div>)
+        return (
+          <div ref={measureRef} className="sticky-tree-wrapper">
+              <StickyTree
+                  width={this.state.dimensions.width}
+                  height={this.state.dimensions.height}
+                  root={0}
+                  renderRoot={true}
+                  rowRenderer={this.rowRenderer}
+                  getChildren={this.getChildren}
+                  getHeight={() => 30}
+                  overscanRowCount={20}
+              />
+          </div>
+        )
     }
-    }
+}
 </Measure>
 ```
 
