@@ -1,6 +1,10 @@
 # react-virtualized-sticky-tree
 A React component for efficiently rendering tree like structures with support for position: sticky. `react-virtualized-sticky-tree` uses a similar API to [react-virtualized](https://github.com/bvaughn/react-virtualized).
 
+## Demo
+
+https://marchaos.github.io/react-virtualized-sticky-tree/
+
 ## Getting Started
 
 `npm install react-virtualized-sticky-tree --save`
