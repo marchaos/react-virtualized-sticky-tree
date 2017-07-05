@@ -8,8 +8,10 @@ export default class StickyTree extends React.PureComponent {
         getHeight: PropTypes.func.isRequired,
         rowRenderer: PropTypes.func.isRequired,
         root: PropTypes.any.isRequired,
+        overscanRowCount: PropTypes.number.isRequired,
         height: PropTypes.number,
-        width: PropTypes.number
+        width: PropTypes.number,
+        renderRoot: PropTypes.bool
     };
 
     static defaultProps = {
@@ -34,14 +36,11 @@ export default class StickyTree extends React.PureComponent {
      *  including information about the top and height of each node.
      *
      *  i.e:
-     *  <pre>
      *  [
      *    { node: 'root', top: 0, index: 0, height: 100 },
      *    { node: 'child1', top: 10, index: 0, parentIndex: 0 height: 10 },
      *    ...
      *  ]
-     *  </pre>
-     *
      */
     flattenTree(node, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
@@ -71,7 +70,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     componentWillMount() {
-        if (this.props.root) {
+        if (this.props.root !== undefined) {
             this.nodePosCache = this.flattenTree(this.props.root);
         }
     }
@@ -103,28 +102,28 @@ export default class StickyTree extends React.PureComponent {
 
         if (this.props.renderRoot) {
             return (
-                <ul className="sticky-tree-list">
+                <div className="rv-sticky-node-list" style={{ width: '100%', position: 'absolute', top: 0 }}>
                     {this.renderChildWithChildren(path[0], 0, indexesToRender)}
-                </ul>
+                </div>
             );
         }
-        return this.renderParentContainer(path[0], 'sticky-tree-list', indexesToRender);
+        return this.renderParentContainer(path[0], indexesToRender);
     }
 
-    renderParentContainer(parent, className, indexesToRender) {
+    renderParentContainer(parent, indexesToRender) {
         return (
-            <ul key={parent.node} className={className} style={{ position: 'absolute', width: '100%' }}>
+            <div key={parent.node} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%' }}>
                 {this.renderChildren(parent, indexesToRender)}
-            </ul>
+            </div>
         );
     }
 
     renderChildWithChildren(child, top, indexesToRender) {
         return (
-            <li key={child.node} style={this.getChildContainerStyle(child, top)}>
+            <div className="rv-sticky-parent-node" key={child.node} style={this.getChildContainerStyle(child, top)}>
                 {this.props.rowRenderer(child.node)}
-                {this.renderParentContainer(child, 'parent-node', indexesToRender)}
-            </li>
+                {this.renderParentContainer(child, indexesToRender)}
+            </div>
         );
     }
 
@@ -138,7 +137,13 @@ export default class StickyTree extends React.PureComponent {
                 if (child.children) {
                     nodes.push(this.renderChildWithChildren(child, top, indexesToRender));
                 } else {
-                    nodes.push(<li key={child.node} style={this.getChildContainerStyle(child, top)}>{this.props.rowRenderer(child.node)}</li>);
+                    nodes.push(
+                        <div
+                            className="rv-sticky-leaf-node" key={child.node}
+                            style={this.getChildContainerStyle(child, top)}>
+                            {this.props.rowRenderer(child.node)}
+                        </div>
+                    );
                 }
             }
             // Needs to be on the outside so that we add the the top even if
@@ -231,7 +236,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     getStyle() {
-        let style = {};
+        let style = { overflow: 'auto', position: 'relative' };
         if (this.props.width) {
             style.width = this.props.width;
         }
@@ -243,7 +248,7 @@ export default class StickyTree extends React.PureComponent {
 
     render() {
         return (
-            <div className="sticky-tree" style={this.getStyle()} onScroll={this.onScroll}>
+            <div className="rv-sticky-tree" style={this.getStyle()} onScroll={this.onScroll}>
                 {this.renderParentTree()}
             </div>
         );
