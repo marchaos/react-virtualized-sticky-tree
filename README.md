@@ -34,6 +34,8 @@ const getHeight = () => 30;
 render(
   <StickyTree
     root="root"
+    width={width}
+    height={height}
     getChildren={getChildren}
     getHeight={getHeight}
     rowRenderer={rowRenderer}
