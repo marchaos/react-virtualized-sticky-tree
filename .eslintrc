@@ -1,0 +1,14 @@
+{
+  "extends": "airbnb",
+  "rules": {
+    "indent": ["warn", 4, {"SwitchCase": 1}],
+    "react/prop-types": "off",
+    "react/jsx-indent": ["warn", 4],
+    "react/jsx-indent-props": ["warn", 4],
+    "comma-dangle": ["error", "never"],
+    "max-len": ["error", 140],
+    "react/jsx-boolean-value": ["error", "always"],
+    "no-plusplus": "off",
+    "no-param-reassign": "off"
+  }
+}
