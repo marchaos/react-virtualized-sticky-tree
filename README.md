@@ -53,7 +53,7 @@ render(
 
 sticky header components are rendered directly via your rowRenderer() function where styles are used to make the component sticky. StickyTree renders the component within a nested structure so that the header's position may be 'stuck' at different levels (see [demo](https://marchaos.github.io/react-virtualized-sticky-tree/)). 
 
-Every nested sticky level should have a top which is at the bottom of the sticky level above it. For example. If your root node is 30px high and has a top of 0, the next sticky node should have a top of 30px. The z-index of the node should also be lower than the nodes above it. If your root node is z-index 4, then the node below could be 3, below that 2 and so on.
+Every nested sticky level should have a top which is at the bottom of the sticky level above it. For example. If your root node is 30px high and has a top of 0, the next sticky node should have a top of 30px. The z-index of the node should also be lower than the nodes above it (so that it is scrolled out of view underneath its parent node). If your root node is z-index 4, then the node below could be 3, below that 2 and so on.
 
 An implementation of this would look like:
 
