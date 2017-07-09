@@ -11,7 +11,17 @@ export default class StickyTree extends React.PureComponent {
         overscanRowCount: PropTypes.number.isRequired,
         height: PropTypes.number,
         width: PropTypes.number,
-        renderRoot: PropTypes.bool
+        renderRoot: PropTypes.bool,
+
+        /**
+         * Called whenever the scrollTop position changes.
+         */
+        onScroll: PropTypes.func,
+
+        /**
+         * Called to indicate that a new render range for rows has been rendered.
+         */
+        onRowsRendered: PropTypes.func
     };
 
     static defaultProps = {
@@ -24,11 +34,12 @@ export default class StickyTree extends React.PureComponent {
         this.onScroll = this.onScroll.bind(this);
 
         this.state = {
-            scrollTop: 0,
             currNodePos: 0
         };
 
+        this.scrollTop = 0;
         this.nodePosCache = [];
+        this.rowRenderRange = undefined;
     }
 
     /**
@@ -56,7 +67,6 @@ export default class StickyTree extends React.PureComponent {
         const children = this.props.getChildren(node);
         if (Array.isArray(children)) {
             nodeInfo.children = [];
-
             for (let i = 0; i < children.length; i++) {
                 // Need to reset parentIndex here as we are recursive.
                 context.parentIndex = index;
@@ -79,6 +89,24 @@ export default class StickyTree extends React.PureComponent {
         if (newProps.root !== this.props.root) {
             this.nodePosCache = this.flattenTree(newProps.root);
         }
+        if (newProps.scrollTop !== this.scrollTop) {
+            this.elem.scrollTop = newProps.scrollTop;
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (this.props.onRowsRendered !== undefined && prevState.currNodePos !== this.props.currNodePos) {
+            let range = this.rowRenderRange;
+
+            this.props.onRowsRendered({
+                overscanStartIndex: range.start,
+                overscanStopIndex: range.end,
+                startIndex: range.visibleStart,
+                stopIndex: range.visibleEnd,
+                startNode: this.nodePosCache[range.visibleStart].node,
+                endNode: this.nodePosCache[range.visibleEnd].node
+            });
+        }
     }
 
     getChildContainerStyle(child, top) {
@@ -86,8 +114,8 @@ export default class StickyTree extends React.PureComponent {
     }
 
     renderParentTree() {
-        const rowRenderRange = this.getRenderRowRange();
-        const path = this.getParentPath(rowRenderRange.start);
+        this.rowRenderRange = this.getRenderRowRange();
+        const path = this.getParentPath(this.rowRenderRange.start);
 
         // Parent nodes to the current range.
         const indexesToRender = new Set();
@@ -96,7 +124,7 @@ export default class StickyTree extends React.PureComponent {
         }
 
         // The rest of the nodes within the range.
-        for (let i = rowRenderRange.start; i <= rowRenderRange.end; i++) {
+        for (let i = this.rowRenderRange.start; i <= this.rowRenderRange.end; i++) {
             indexesToRender.add(this.nodePosCache[i].index);
         }
 
@@ -162,18 +190,18 @@ export default class StickyTree extends React.PureComponent {
         if (start < 0) {
             start = 0;
         }
-        let end = this.state.currNodePos + 1;
+        let visibleEnd = this.state.currNodePos + 1;
 
-        while (this.nodePosCache[end] && this.nodePosCache[end].top < this.state.scrollTop + this.props.height) {
-            end++;
+        while (this.nodePosCache[visibleEnd] && this.nodePosCache[visibleEnd].top < this.scrollTop + this.props.height) {
+            visibleEnd++;
         }
 
-        end = end + this.props.overscanRowCount;
+        let end = visibleEnd + this.props.overscanRowCount;
         if (end > this.nodePosCache.length - 1) {
             end = this.nodePosCache.length - 1;
         }
 
-        return { start, end };
+        return { start, end, visibleStart: this.state.currNodePos, visibleEnd: visibleEnd };
     }
 
     /**
@@ -219,9 +247,9 @@ export default class StickyTree extends React.PureComponent {
      */
     findClosestNode(scrollTop) {
         let pos;
-        if (scrollTop > this.state.scrollTop) {
+        if (scrollTop > this.scrollTop) {
             pos = this.forwardSearch(scrollTop);
-        } else if (scrollTop < this.state.scrollTop) {
+        } else if (scrollTop < this.scrollTop) {
             pos = this.backwardSearch(scrollTop);
         }
         if (pos !== this.state.currNodePos) {
@@ -232,7 +260,11 @@ export default class StickyTree extends React.PureComponent {
     onScroll(e) {
         const scrollTop = e.target.scrollTop;
         this.findClosestNode(scrollTop);
-        this.setState({ scrollTop: scrollTop });
+        this.scrollTop = scrollTop;
+
+        if (this.props.onScroll !== undefined) {
+            this.props.onScroll({ scrollTop: this.scrollTop });
+        }
     }
 
     getStyle() {
@@ -248,7 +280,7 @@ export default class StickyTree extends React.PureComponent {
 
     render() {
         return (
-            <div className="rv-sticky-tree" style={this.getStyle()} onScroll={this.onScroll}>
+            <div ref={elem => this.elem = elem} className="rv-sticky-tree" style={this.getStyle()} onScroll={this.onScroll}>
                 {this.renderParentTree()}
             </div>
         );
