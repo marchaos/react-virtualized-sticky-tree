@@ -24,7 +24,8 @@
     "build:es": "npm run clean:es && cross-env NODE_ENV=production cross-env BABEL_ENV=es babel src --out-dir dist/es --ignore *.spec.js",
     "prepublish": "npm run build",
     "clean:commonjs": "rimraf dist/commonjs",
-    "clean:es": "rimraf dist/es"
+    "clean:es": "rimraf dist/es",
+    "test": "mocha \"test/**/*spec.js*\" --compilers js:babel-register --reporter=dot"
   },
   "files": [
     "dist"

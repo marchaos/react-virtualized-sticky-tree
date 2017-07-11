@@ -205,7 +205,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     /**
-     * Returns the parent path for the specified index within nodePosCache.
+     * Returns the parent path from nodePosCache for the specified index within nodePosCache.
      * @param nodeIndex
      * @returns {Array<Node>}
      */
@@ -221,6 +221,12 @@ export default class StickyTree extends React.PureComponent {
         return path.reverse();
     }
 
+    /**
+     * Searches from the current node position downwards to see if the top of nodes above are greater
+     * than or equal to the current scrollTop
+     * @param scrollTop
+     * @returns {number}
+     */
     forwardSearch(scrollTop) {
         const nodePosCache = this.nodePosCache;
         for (let i = this.state.currNodePos; i < nodePosCache.length; i++) {
@@ -231,6 +237,12 @@ export default class StickyTree extends React.PureComponent {
         return nodePosCache.length - 1;
     }
 
+    /**
+     * Searches from the current node position upwards to see if the top of nodes above are less than
+     * or equal the current scrollTop.
+     * @param scrollTop
+     * @returns {number}
+     */
     backwardSearch(scrollTop) {
         const nodePosCache = this.nodePosCache;
         for (let i = this.state.currNodePos; i >= 0; i--) {
