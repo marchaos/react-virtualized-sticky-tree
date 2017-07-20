@@ -80,16 +80,14 @@ export default class StickyTree extends React.PureComponent {
     }
 
     componentWillMount() {
-        if (this.props.root !== undefined) {
-            this.nodePosCache = this.flattenTree(this.props.root);
-        }
+        this.recomputeTree();
     }
 
     componentWillReceiveProps(newProps) {
         if (newProps.root !== this.props.root) {
             this.nodePosCache = this.flattenTree(newProps.root);
         }
-        if (newProps.scrollTop !== this.scrollTop) {
+        if (newProps.scrollTop !== undefined && newProps.scrollTop >= 0 && newProps.scrollTop !== this.scrollTop) {
             this.elem.scrollTop = newProps.scrollTop;
         }
     }
@@ -106,6 +104,13 @@ export default class StickyTree extends React.PureComponent {
                 startNode: this.nodePosCache[range.visibleStart].node,
                 endNode: this.nodePosCache[range.visibleEnd].node
             });
+        }
+    }
+
+    recomputeTree() {
+        if (this.props.root !== undefined) {
+            this.nodePosCache = this.flattenTree(this.props.root);
+            this.forceUpdate();
         }
     }
 
