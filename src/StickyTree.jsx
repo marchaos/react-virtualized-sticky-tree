@@ -106,7 +106,7 @@ export default class StickyTree extends React.PureComponent {
 
         if (newProps.scrollIndex !== undefined && newProps.scrollIndex >= 0) {
             if (this.nodePosCache[newProps.scrollIndex] !== undefined) {
-                this.elem.scrollTop = this.nodePosCache[newProps.scrollIndex].scrollTop;
+                this.elem.scrollTop = this.nodePosCache[newProps.scrollIndex].top;
             }
         }
     }
