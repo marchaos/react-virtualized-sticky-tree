@@ -14,6 +14,18 @@ export default class StickyTree extends React.PureComponent {
         renderRoot: PropTypes.bool,
 
         /**
+         * Sets the position of the tree to the specified scrollTop. To reset
+         * this, change this to -1 or undefined
+         */
+        scrollTop: PropTypes.number,
+
+        /**
+         * Sets the position of the tree to the specified scrollIndex. This is useful when
+         * paired with onRowsRendered() which returns the startIndex and stopIndex.
+         */
+        scrollIndex: PropTypes.number,
+
+        /**
          * Called whenever the scrollTop position changes.
          */
         onScroll: PropTypes.func,
@@ -87,22 +99,31 @@ export default class StickyTree extends React.PureComponent {
         if (newProps.root !== this.props.root) {
             this.nodePosCache = this.flattenTree(newProps.root);
         }
+
         if (newProps.scrollTop !== undefined && newProps.scrollTop >= 0 && newProps.scrollTop !== this.scrollTop) {
             this.elem.scrollTop = newProps.scrollTop;
+        }
+
+        if (newProps.scrollIndex !== undefined && newProps.scrollIndex >= 0) {
+            if (this.nodePosCache[newProps.scrollIndex] !== undefined) {
+                this.elem.scrollTop = this.nodePosCache[newProps.scrollIndex].scrollTop;
+            }
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (this.props.onRowsRendered !== undefined && prevState.currNodePos !== this.props.currNodePos) {
-            let range = this.rowRenderRange;
+            const range = this.rowRenderRange;
+            const visibleStartInfo = this.nodePosCache[range.visibleStart];
+            const visibleEndInfo = this.nodePosCache[range.visibleEnd];
 
             this.props.onRowsRendered({
                 overscanStartIndex: range.start,
                 overscanStopIndex: range.end,
                 startIndex: range.visibleStart,
                 stopIndex: range.visibleEnd,
-                startNode: this.nodePosCache[range.visibleStart].node,
-                endNode: this.nodePosCache[range.visibleEnd].node
+                startNode: visibleStartInfo && visibleStartInfo.node,
+                endNode: visibleEndInfo && visibleEndInfo.node
             });
         }
     }
@@ -206,7 +227,7 @@ export default class StickyTree extends React.PureComponent {
             end = this.nodePosCache.length - 1;
         }
 
-        return { start, end, visibleStart: this.state.currNodePos, visibleEnd: visibleEnd };
+        return { start, end, visibleStart: this.state.currNodePos, visibleEnd };
     }
 
     /**
