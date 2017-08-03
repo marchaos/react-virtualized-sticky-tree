@@ -105,9 +105,41 @@ export default class StickyTree extends React.PureComponent {
         }
 
         if (newProps.scrollIndex !== undefined && newProps.scrollIndex >= 0) {
-            if (this.nodePosCache[newProps.scrollIndex] !== undefined) {
-                this.elem.scrollTop = this.nodePosCache[newProps.scrollIndex].top;
+            this.scrollIndexIntoView(newProps.scrollIndex);
+        }
+    }
+
+    getNodeIndex(node) {
+        // TODO: Might be best to create a lookup to support this.
+        for (let i = 0, l = this.nodePosCache.length; i < l; ++i) {
+            if (this.nodePosCache[i].node === node) {
+                return i;
             }
+        }
+        return -1;
+    }
+
+    /**
+     * Returns true if the node is within the current render range. Note this this will return FALSE for visible sticky
+     * nodes
+     * @param node
+     * @returns {*}
+     */
+    isNodeInView(node) {
+        return this.isIndexInView(this.getNodeIndex(node));
+    }
+
+    isIndexInView(index) {
+        return this.rowRenderRange.visibleStart <= index && this.rowRenderRange.visibleEnd > index;
+    }
+
+    scrollNodeIntoView(node) {
+        this.scrollIndexIntoView(this.getNodeIndex(node));
+    }
+
+    scrollIndexIntoView(scrollIndex) {
+        if (this.nodePosCache[scrollIndex] !== undefined) {
+            this.elem.scrollTop = this.nodePosCache[scrollIndex].top - 50;
         }
     }
 
@@ -131,6 +163,12 @@ export default class StickyTree extends React.PureComponent {
     recomputeTree() {
         if (this.props.root !== undefined) {
             this.nodePosCache = this.flattenTree(this.props.root);
+            // Need to re-render as the curr node may not be in view
+            if (this.elem) {
+                // We need to find the the closest node to where we are scrolled to since the structure of the
+                // the tree probably has changed.
+                this.findClosestNode(this.elem.scrollTop, 0);
+            }
             this.forceUpdate();
         }
     }
@@ -251,11 +289,12 @@ export default class StickyTree extends React.PureComponent {
      * Searches from the current node position downwards to see if the top of nodes above are greater
      * than or equal to the current scrollTop
      * @param scrollTop
+     * @param searchPos
      * @returns {number}
      */
-    forwardSearch(scrollTop) {
+    forwardSearch(scrollTop, searchPos) {
         const nodePosCache = this.nodePosCache;
-        for (let i = this.state.currNodePos; i < nodePosCache.length; i++) {
+        for (let i = searchPos; i < nodePosCache.length; i++) {
             if (nodePosCache[i].top >= scrollTop) {
                 return i;
             }
@@ -267,11 +306,12 @@ export default class StickyTree extends React.PureComponent {
      * Searches from the current node position upwards to see if the top of nodes above are less than
      * or equal the current scrollTop.
      * @param scrollTop
+     * @param searchPos
      * @returns {number}
      */
-    backwardSearch(scrollTop) {
+    backwardSearch(scrollTop, searchPos) {
         const nodePosCache = this.nodePosCache;
-        for (let i = this.state.currNodePos; i >= 0; i--) {
+        for (let i = searchPos; i >= 0; i--) {
             if (nodePosCache[i].top <= scrollTop) {
                 return i;
             }
@@ -282,22 +322,22 @@ export default class StickyTree extends React.PureComponent {
     /**
      * Returns the closest node within nodePosCache.
      * @param scrollTop
+     * @param currNodePos
      */
-    findClosestNode(scrollTop) {
+    findClosestNode(scrollTop, currNodePos) {
         let pos;
-        if (scrollTop > this.scrollTop) {
-            pos = this.forwardSearch(scrollTop);
-        } else if (scrollTop < this.scrollTop) {
-            pos = this.backwardSearch(scrollTop);
+        if (scrollTop > this.scrollTop || currNodePos === 0) {
+            pos = this.forwardSearch(scrollTop, currNodePos);
         }
-        if (pos !== this.state.currNodePos) {
-            this.setState({ currNodePos: pos });
+        if (scrollTop < this.scrollTop || pos === undefined) {
+            pos = this.backwardSearch(scrollTop, currNodePos);
         }
+        this.setState({ currNodePos: pos });
     }
 
     onScroll(e) {
         const scrollTop = e.target.scrollTop;
-        this.findClosestNode(scrollTop);
+        this.findClosestNode(scrollTop, this.state.currNodePos);
         this.scrollTop = scrollTop;
 
         if (this.props.onScroll !== undefined) {
