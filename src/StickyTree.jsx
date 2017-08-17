@@ -119,27 +119,30 @@ export default class StickyTree extends React.PureComponent {
         return -1;
     }
 
+    isNodeInView(node, stickyOffset) {
+        return this.isIndexInView(this.getNodeIndex(node), stickyOffset);
+    }
+
     /**
-     * Returns true if the node is within the current render range. Note this this will return FALSE for visible sticky
-     * nodes
-     * @param node
-     * @returns {*}
+     * Returns true if the node is within the view. Note this this will return FALSE for visible sticky nodes that are partially out of
+     * view disregarding sticky, which is useful when the node will become unstuck. This may occur when the dode is collapsed in a tree.
+     * In this case, you want to scroll this node back into view so that the collapsed node stays in the same position.
+     *
+     * @param index
+     * @param stickyOffset The sticky top position of the node at the specified index.
+     * @returns {boolean}
      */
-    isNodeInView(node) {
-        return this.isIndexInView(this.getNodeIndex(node));
+    isIndexInView(index, stickyOffset) {
+        return this.elem.scrollTop <= this.nodePosCache[index].top - stickyOffset;
     }
 
-    isIndexInView(index) {
-        return this.rowRenderRange.visibleStart <= index && this.rowRenderRange.visibleEnd > index;
+    scrollNodeIntoView(node, stickyOffset) {
+        this.scrollIndexIntoView(this.getNodeIndex(node), stickyOffset);
     }
 
-    scrollNodeIntoView(node) {
-        this.scrollIndexIntoView(this.getNodeIndex(node));
-    }
-
-    scrollIndexIntoView(scrollIndex) {
+    scrollIndexIntoView(scrollIndex, stickyOffset) {
         if (this.nodePosCache[scrollIndex] !== undefined) {
-            this.elem.scrollTop = this.nodePosCache[scrollIndex].top - 50;
+            this.elem.scrollTop = this.nodePosCache[scrollIndex].top - stickyOffset;
         }
     }
 
