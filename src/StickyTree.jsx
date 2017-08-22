@@ -122,7 +122,7 @@ export default class StickyTree extends React.PureComponent {
      *    ...
      *  ]
      */
-    flattenTree(node, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
+    flattenTree(node, getChildren = this.props.getChildren, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
         const height = node.height;
 
@@ -145,14 +145,14 @@ export default class StickyTree extends React.PureComponent {
 
         context.totalHeight += height;
 
-        const children = this.props.getChildren(node.id);
+        const children = getChildren(node.id);
         if (Array.isArray(children)) {
             nodeInfo.children = [];
             for (let i = 0; i < children.length; i++) {
                 // Need to reset parentIndex here as we are recursive.
                 context.parentIndex = index;
                 const child = children[i];
-                this.flattenTree(child, nodes, context);
+                this.flattenTree(child, getChildren, nodes, context);
             }
         }
 
@@ -166,8 +166,9 @@ export default class StickyTree extends React.PureComponent {
     }
 
     componentWillReceiveProps(newProps) {
-        if (newProps.root !== this.props.root) {
-            this.nodePosCache = this.flattenTree(newProps.root);
+        // These two properties will change when the structure changes, so we need to re-build the tree when this happens.
+        if (newProps.root !== this.props.root || newProps.getChildren !== this.props.getChildren) {
+            this.nodePosCache = this.flattenTree(newProps.root, newProps.getChildren);
         }
 
         if (newProps.scrollTop !== undefined && newProps.scrollTop >= 0 && newProps.scrollTop !== this.scrollTop) {
@@ -235,7 +236,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     recomputeTree() {
-        if (this.props.root !== undefined) {
+        if (this.props.root !== undefined && this.props.getChildren !== undefined) {
             this.nodePosCache = this.flattenTree(this.props.root);
             // Need to re-render as the curr node may not be in view
             if (this.elem) {
@@ -288,7 +289,7 @@ export default class StickyTree extends React.PureComponent {
 
     renderParentContainer(parent, indexesToRender) {
         return (
-            <div key={parent.id} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%' }}>
+            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%' }}>
                 {this.renderChildren(parent, indexesToRender)}
             </div>
         );
@@ -296,7 +297,7 @@ export default class StickyTree extends React.PureComponent {
 
     renderChildWithChildren(child, top, indexesToRender) {
         return (
-            <div className="rv-sticky-parent-node" key={child.id} style={this.getChildContainerStyle(child, top)}>
+            <div key={`rv-sticky-parent-node-${child.id}`} className="rv-sticky-parent-node" style={this.getChildContainerStyle(child, top)}>
                 {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
                 {this.renderParentContainer(child, indexesToRender)}
             </div>
@@ -310,7 +311,7 @@ export default class StickyTree extends React.PureComponent {
             const child = this.nodePosCache[index];
 
             if (indexesToRender.has(index)) {
-                if (child.children) {
+                if (child.children && child.children.length > 0) {
                     nodes.push(this.renderChildWithChildren(child, top, indexesToRender));
                 } else {
                     nodes.push(
