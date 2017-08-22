@@ -6,8 +6,30 @@ export default class StickyTree extends React.PureComponent {
     static propTypes = {
         getChildren: PropTypes.func.isRequired,
         getHeight: PropTypes.func.isRequired,
+
+        /**
+         * Called to retrieve a row to render. The function should return a single React node.
+         * The function is called with an object in the form:
+         *
+         * <pre>
+         *     rowRenderer({ id, style })
+         * </pre>
+         *
+         * The id is the id from either the root property passed to the tree, or one returned in the getChildren call.
+         */
         rowRenderer: PropTypes.func.isRequired,
-        root: PropTypes.any.isRequired,
+
+        /**
+         * An object which represents the root node in the form:
+         *
+         * {
+         *   id: 'myRootNodeId',
+         *   isSticky: true
+         * }
+         *
+         * This will be the first node passed to rowRenderer({id: myRootNodeId, ...}). Your id might be an index in an array or map lookup.
+         */
+        root: PropTypes.object.isRequired,
         overscanRowCount: PropTypes.number.isRequired,
         height: PropTypes.number,
         width: PropTypes.number,
@@ -60,23 +82,35 @@ export default class StickyTree extends React.PureComponent {
      *
      *  i.e:
      *  [
-     *    { node: 'root', top: 0, index: 0, height: 100 },
-     *    { node: 'child1', top: 10, index: 0, parentIndex: 0 height: 10 },
+     *    { id: 'root', top: 0, index: 0, height: 100 },
+     *    { id: 'child1', top: 10, index: 0, parentIndex: 0 height: 10 },
      *    ...
      *  ]
      */
     flattenTree(node, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
-        const nodeInfo = { node, top: context.totalHeight, parentIndex: context.parentIndex, index };
+        const height = this.props.getHeight(node.id);
+
+        const nodeInfo = {
+            id: node.id,
+            isSticky: node.isSticky || false,
+            stickyTop: node.stickyTop || 0,
+            zIndex: node.zIndex || 0,
+            top: context.totalHeight,
+            parentIndex: context.parentIndex,
+            height,
+            index
+        };
+
         nodes.push(nodeInfo);
 
         if (context.parentIndex !== undefined) {
             nodes[context.parentIndex].children.push(index);
         }
 
-        context.totalHeight += this.props.getHeight(node);
+        context.totalHeight += height;
 
-        const children = this.props.getChildren(node);
+        const children = this.props.getChildren(node.id);
         if (Array.isArray(children)) {
             nodeInfo.children = [];
             for (let i = 0; i < children.length; i++) {
@@ -86,7 +120,9 @@ export default class StickyTree extends React.PureComponent {
                 this.flattenTree(child, nodes, context);
             }
         }
-        nodeInfo.height = context.totalHeight - nodeInfo.top;
+
+        nodeInfo.totalHeight = context.totalHeight - nodeInfo.top;
+
 
         return nodes;
     }
@@ -109,40 +145,41 @@ export default class StickyTree extends React.PureComponent {
         }
     }
 
-    getNodeIndex(node) {
+    getNodeIndex(id) {
         // TODO: Might be best to create a lookup to support this.
         for (let i = 0, l = this.nodePosCache.length; i < l; ++i) {
-            if (this.nodePosCache[i].node === node) {
+            if (this.nodePosCache[i].id === id) {
                 return i;
             }
         }
         return -1;
     }
 
-    isNodeInView(node, stickyOffset) {
-        return this.isIndexInView(this.getNodeIndex(node), stickyOffset);
+    isNodeInView(node) {
+        return this.isIndexInView(this.getNodeIndex(node));
     }
 
     /**
      * Returns true if the node is within the view. Note this this will return FALSE for visible sticky nodes that are partially out of
-     * view disregarding sticky, which is useful when the node will become unstuck. This may occur when the dode is collapsed in a tree.
+     * view disregarding sticky, which is useful when the node will become unstuck. This may occur when the node is collapsed in a tree.
      * In this case, you want to scroll this node back into view so that the collapsed node stays in the same position.
      *
      * @param index
-     * @param stickyOffset The sticky top position of the node at the specified index.
      * @returns {boolean}
      */
-    isIndexInView(index, stickyOffset) {
-        return this.elem.scrollTop <= this.nodePosCache[index].top - stickyOffset;
+    isIndexInView(index) {
+        let node = this.nodePosCache[index];
+        return this.elem.scrollTop <= node.top - node.stickyTop;
     }
 
-    scrollNodeIntoView(node, stickyOffset) {
-        this.scrollIndexIntoView(this.getNodeIndex(node), stickyOffset);
+    scrollNodeIntoView(node) {
+        this.scrollIndexIntoView(this.getNodeIndex(node));
     }
 
-    scrollIndexIntoView(scrollIndex, stickyOffset) {
-        if (this.nodePosCache[scrollIndex] !== undefined) {
-            this.elem.scrollTop = this.nodePosCache[scrollIndex].top - stickyOffset;
+    scrollIndexIntoView(scrollIndex) {
+        let node = this.nodePosCache[scrollIndex];
+        if (node !== undefined) {
+            this.elem.scrollTop = node.top - node.stickyTop;
         }
     }
 
@@ -157,8 +194,8 @@ export default class StickyTree extends React.PureComponent {
                 overscanStopIndex: range.end,
                 startIndex: range.visibleStart,
                 stopIndex: range.visibleEnd,
-                startNode: visibleStartInfo && visibleStartInfo.node,
-                endNode: visibleEndInfo && visibleEndInfo.node
+                startNode: visibleStartInfo && visibleStartInfo.id,
+                endNode: visibleEndInfo && visibleEndInfo.id
             });
         }
     }
@@ -177,7 +214,17 @@ export default class StickyTree extends React.PureComponent {
     }
 
     getChildContainerStyle(child, top) {
-        return { position: 'absolute', top: top, height: child.height, width: '100%' };
+        return { position: 'absolute', top: top, height: child.totalHeight, width: '100%' };
+    }
+
+    getClientNodeStyle(node) {
+        const style = { height: node.height };
+        if (node.isSticky) {
+            style.position = 'sticky';
+            style.top = node.stickyTop;
+            style.zIndex = node.zIndex;
+        }
+        return style;
     }
 
     renderParentTree() {
@@ -207,7 +254,7 @@ export default class StickyTree extends React.PureComponent {
 
     renderParentContainer(parent, indexesToRender) {
         return (
-            <div key={parent.node} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%' }}>
+            <div key={parent.id} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%' }}>
                 {this.renderChildren(parent, indexesToRender)}
             </div>
         );
@@ -215,8 +262,8 @@ export default class StickyTree extends React.PureComponent {
 
     renderChildWithChildren(child, top, indexesToRender) {
         return (
-            <div className="rv-sticky-parent-node" key={child.node} style={this.getChildContainerStyle(child, top)}>
-                {this.props.rowRenderer(child.node)}
+            <div className="rv-sticky-parent-node" key={child.id} style={this.getChildContainerStyle(child, top)}>
+                {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
                 {this.renderParentContainer(child, indexesToRender)}
             </div>
         );
@@ -234,16 +281,16 @@ export default class StickyTree extends React.PureComponent {
                 } else {
                     nodes.push(
                         <div
-                            className="rv-sticky-leaf-node" key={child.node}
+                            className="rv-sticky-leaf-node" key={child.id}
                             style={this.getChildContainerStyle(child, top)}>
-                            {this.props.rowRenderer(child.node)}
+                            {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
                         </div>
                     );
                 }
             }
             // Needs to be on the outside so that we add the the top even if
             // this node is not visible
-            top += child.height;
+            top += child.totalHeight;
         });
         return nodes;
     }
@@ -348,7 +395,7 @@ export default class StickyTree extends React.PureComponent {
         }
     }
 
-    getStyle() {
+    render() {
         let style = { overflow: 'auto', position: 'relative' };
         if (this.props.width) {
             style.width = this.props.width;
@@ -356,12 +403,9 @@ export default class StickyTree extends React.PureComponent {
         if (this.props.height) {
             style.height = this.props.height;
         }
-        return style;
-    }
 
-    render() {
         return (
-            <div ref={elem => this.elem = elem} className="rv-sticky-tree" style={this.getStyle()} onScroll={this.onScroll}>
+            <div ref={elem => this.elem = elem} className="rv-sticky-tree" style={style} onScroll={this.onScroll}>
                 {this.renderParentTree()}
             </div>
         );
