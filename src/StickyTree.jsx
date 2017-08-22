@@ -5,7 +5,6 @@ export default class StickyTree extends React.PureComponent {
 
     static propTypes = {
         getChildren: PropTypes.func.isRequired,
-        getHeight: PropTypes.func.isRequired,
 
         /**
          * Called to retrieve a row to render. The function should return a single React node.
@@ -89,7 +88,7 @@ export default class StickyTree extends React.PureComponent {
      */
     flattenTree(node, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
-        const height = this.props.getHeight(node.id);
+        const height = node.height;
 
         const nodeInfo = {
             id: node.id,
