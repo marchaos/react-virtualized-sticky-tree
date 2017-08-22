@@ -4,6 +4,26 @@ import PropTypes from 'prop-types';
 export default class StickyTree extends React.PureComponent {
 
     static propTypes = {
+
+        /**
+         * Returns an array of child objects that represent the children of a particular node.
+         * The returned object for each child should be in the form:
+         *
+         * { id: 'childId', height: [number], isSticky: [true|false], stickyTop: [number], zIndex: 0 }
+         *
+         * Where id and height are mandatory. If isSticky is true, stickyTop and zIndex should also be returned.
+         *
+         * Example:
+         *
+         * const getChildren = (id) => {
+         *    return myTree[id].children.map(childId => ({
+         *      id: childId
+         *      isSticky: nodeIsSticky(childId),
+         *      height: myTree[childId].height,
+         *      ...
+         *    }))
+         * }
+         */
         getChildren: PropTypes.func.isRequired,
 
         /**
@@ -29,9 +49,25 @@ export default class StickyTree extends React.PureComponent {
          * This will be the first node passed to rowRenderer({id: myRootNodeId, ...}). Your id might be an index in an array or map lookup.
          */
         root: PropTypes.object.isRequired,
+
+        /**
+         * Lets StickyTree know how many rows above and below the visible area should be rendered, to improve performance.
+         */
         overscanRowCount: PropTypes.number.isRequired,
+
+        /**
+         * The height of the outer container.
+         */
         height: PropTypes.number,
+
+        /**
+         * The width of the outer container
+         */
         width: PropTypes.number,
+
+        /**
+         * if true, the root node will be rendered (by calling rowRenderer() for the root id). Otherwise no root node will be rendered.
+         */
         renderRoot: PropTypes.bool,
 
         /**
@@ -58,7 +94,7 @@ export default class StickyTree extends React.PureComponent {
     };
 
     static defaultProps = {
-        overscanRowCount: 0,
+        overscanRowCount: 10,
         renderRoot: true
     };
 
@@ -81,8 +117,8 @@ export default class StickyTree extends React.PureComponent {
      *
      *  i.e:
      *  [
-     *    { id: 'root', top: 0, index: 0, height: 100 },
-     *    { id: 'child1', top: 10, index: 0, parentIndex: 0 height: 10 },
+     *    { id: 'root', top: 0, index: 0, height: 100. isSticky: true , zIndex: 0, stickyTop: 10 },
+     *    { id: 'child1', top: 10, index: 1, parentIndex: 0 height: 10, isSticky: false },
      *    ...
      *  ]
      */
@@ -121,7 +157,6 @@ export default class StickyTree extends React.PureComponent {
         }
 
         nodeInfo.totalHeight = context.totalHeight - nodeInfo.top;
-
 
         return nodes;
     }
