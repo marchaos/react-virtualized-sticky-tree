@@ -25,19 +25,19 @@ const tree = {
 };
 
 const getChildren = (id) => {
-  return tree[id].children;
+  return tree[id].children.map(id => ({ id }));
 };
 
-const rowRenderer = (id) => {
+const rowRenderer = ({ id, style }) => {
   const node = tree[id];
-  return <div>{node.name}</div>
+  return <div style={style}>{node.name}</div>
 };
 
 const getHeight = () => 30;
 
 render(
   <StickyTree
-    root="root"
+    root={{ id: 'root' }}
     width={width}
     height={height}
     getChildren={getChildren}
@@ -51,27 +51,64 @@ render(
 
 ## Nested Sticky Header Styles
 
-sticky header components are rendered directly via your rowRenderer() function where styles are used to make the component sticky. StickyTree renders the component within a nested structure so that the header's position may be 'stuck' at different levels (see [demo](https://marchaos.github.io/react-virtualized-sticky-tree/)). 
+StickyTree renders the component within a nested structure so that the header's position may be 'stuck' at different levels (see [demo](https://marchaos.github.io/react-virtualized-sticky-tree/)). When passing the root node or items in the children array, specifying isSticky: true will make the item sticky.
 
 Every nested sticky level should have a top which is at the bottom of the sticky level above it. For example. If your root node is 30px high and has a top of 0, the next sticky node should have a top of 30px. The z-index of the node should also be lower than the nodes above it (so that it is scrolled out of view underneath its parent node). If your root node is z-index 4, then the node below could be 3, below that 2 and so on.
 
 An implementation of this would look like:
 
 ```js
-const rowRenderer = (id) => {
-  let style = {};
-  if (nodeShouldBeSticky(id)) {
-    const depth = mytree[id].depth;
-    const nodeHeight = 30;
-    style = { position: 'sticky', top: depth * nodeHeight, zIndex: 4 - depth };
-  }
+const getChildren = (id) => {
+    if (shouldBeSticky(id)) {
+      return tree[id].children.map(childId => ({
+         id: childId, 
+         isSticky: true,
+         stickyTop: 10,
+         zIndex: 2, 
+         height: 10
+      }))
+    }
+    return tree[id].children.map(childId => ({ id: childId, isSticky: false, height: 10 }))
+};
+
+/**
+ * Here, style will include the styles to make the node sticky in the right position. 
+ */
+const rowRenderer = ({ id, style }) => {
   return <div className="row" style={style}>{mytree[id].name}</div>;
 };
+```
+
+Be sure to pass a sticky root node to StickyTree if it should be sticky
+
+```js
+<StickyTree
+    className="treee"
+    root={{ id: 'root', isSticky: true, stickyTop: 0, zIndex: 3, height: 10 }}
+    rowRenderer={rowRenderer}
+    getChildren={getChildren}
+/>
 ```
 
 ## Dynamic Height Container
 
 If the containing element of your tree has a dynamic height, you can use [react-measure](https://github.com/souporserious/react-measure) to provide the width and height to sticky-tree so that it can resize to the available width.
+
+For Simplicity, [react-virtualized-sticky-tree] includes a component which uses react-measure to acieve this:
+
+```js
+import { AutoSizedStickyTree } from 'react-virtualized-sticky-tree';
+
+<AutoSizedStickyTree
+    className="tree"
+    root={{ id: 'root', isSticky: true, stickyTop: 0, zIndex: 300, height: PARENT_NODE_HEIGHT }}
+    rowRenderer={rowRenderer}
+    getChildren={getChildren}
+    ...
+/>
+```
+
+If you want to do this yourself, you can install react-measure:
 
 `npm install react-measure --save`
 
