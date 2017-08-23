@@ -14,7 +14,7 @@ https://marchaos.github.io/react-virtualized-sticky-tree/
 ## Basic Example
 
 ```js
-import StickyTree from 'react-virtualized-sticky-tree';
+import { StickyTree } from 'react-virtualized-sticky-tree';
 
 const tree = {
   root: { name: 'Root', children: ['child1', 'child2', 'child3'], depth: 0 },
