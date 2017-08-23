@@ -168,7 +168,7 @@ export default class StickyTree extends React.PureComponent {
     componentWillReceiveProps(newProps) {
         // These two properties will change when the structure changes, so we need to re-build the tree when this happens.
         if (newProps.root !== this.props.root || newProps.getChildren !== this.props.getChildren) {
-            this.nodePosCache = this.flattenTree(newProps.root, newProps.getChildren);
+            this.refreshCachedMetadata(newProps);
         }
 
         if (newProps.scrollTop !== undefined && newProps.scrollTop >= 0 && newProps.scrollTop !== this.scrollTop) {
@@ -235,15 +235,19 @@ export default class StickyTree extends React.PureComponent {
         }
     }
 
+    refreshCachedMetadata(props) {
+        this.nodePosCache = this.flattenTree(props.root, props.getChildren);
+        // Need to re-render as the curr node may not be in view
+        if (this.elem) {
+            // We need to find the the closest node to where we are scrolled to since the structure of the
+            // the tree probably has changed.
+            this.findClosestNode(this.elem.scrollTop, 0);
+        }
+    }
+
     recomputeTree() {
         if (this.props.root !== undefined && this.props.getChildren !== undefined) {
-            this.nodePosCache = this.flattenTree(this.props.root);
-            // Need to re-render as the curr node may not be in view
-            if (this.elem) {
-                // We need to find the the closest node to where we are scrolled to since the structure of the
-                // the tree probably has changed.
-                this.findClosestNode(this.elem.scrollTop, 0);
-            }
+            this.refreshCachedMetadata(this.props);
             this.forceUpdate();
         }
     }
