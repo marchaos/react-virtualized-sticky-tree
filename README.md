@@ -98,7 +98,7 @@ import { AutoSizedStickyTree } from 'react-virtualized-sticky-tree';
 
 <AutoSizedStickyTree
     className="tree"
-    root={{ id: 'root', isSticky: true, stickyTop: 0, zIndex: 300, height: PARENT_NODE_HEIGHT }}
+    root={{ id: 'root', isSticky: true, stickyTop: 0, zIndex: 3, height: 30 }}
     rowRenderer={rowRenderer}
     getChildren={getChildren}
     ...
