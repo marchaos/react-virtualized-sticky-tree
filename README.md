@@ -25,7 +25,7 @@ const tree = {
 };
 
 const getChildren = (id) => {
-  return tree[id].children.map(id => ({ id }));
+  return tree[id].children.map(id => ({ id, height: 30 }));
 };
 
 const rowRenderer = ({ id, style }) => {
@@ -33,15 +33,12 @@ const rowRenderer = ({ id, style }) => {
   return <div style={style}>{node.name}</div>
 };
 
-const getHeight = () => 30;
-
 render(
   <StickyTree
-    root={{ id: 'root' }}
+    root={{ id: 'root', height: 30 }}
     width={width}
     height={height}
     getChildren={getChildren}
-    getHeight={getHeight}
     rowRenderer={rowRenderer}
     renderRoot={true}
     overscanRowCount={20}
@@ -63,8 +60,8 @@ const getChildren = (id) => {
       return tree[id].children.map(childId => ({
          id: childId, 
          isSticky: true,
-         stickyTop: 10,
-         zIndex: 2, 
+         stickyTop: tree[childId].depth * 10,
+         zIndex: 30 - tree[childId].depth, 
          height: 10
       }))
     }
@@ -117,9 +114,8 @@ as a HOC:
 const MeasuredTree = withContentRect('bounds')(({ measureRef, measure, contentRect }) => (
   <div ref={measureRef} className="sticky-wrapper">
     <StickyTree
-      root="root"
+      root={{id: 0}}
       getChildren={getChildren}
-      getHeight={getHeight}
       rowRenderer={rowRenderer}
       renderRoot={true}
       width={contentRect.bounds.width}
@@ -141,11 +137,10 @@ or within render()
               <StickyTree
                   width={this.state.dimensions.width}
                   height={this.state.dimensions.height}
-                  root={0}
+                  root={{id: 0 }}
                   renderRoot={true}
                   rowRenderer={this.rowRenderer}
                   getChildren={this.getChildren}
-                  getHeight={() => 30}
                   overscanRowCount={20}
               />
           </div>
