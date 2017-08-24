@@ -90,7 +90,12 @@ export default class StickyTree extends React.PureComponent {
         /**
          * Called to indicate that a new render range for rows has been rendered.
          */
-        onRowsRendered: PropTypes.func
+        onRowsRendered: PropTypes.func,
+
+        /**
+         * Specifies the default row height which will be used if the child or root object do not have a height specified.
+         */
+        defaultRowHeight: PropTypes.number
     };
 
     static defaultProps = {
@@ -124,7 +129,7 @@ export default class StickyTree extends React.PureComponent {
      */
     flattenTree(node, getChildren = this.props.getChildren, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
-        const height = node.height;
+        const height = this.getNodeHeight(node);
 
         const nodeInfo = {
             id: node.id,
@@ -167,7 +172,9 @@ export default class StickyTree extends React.PureComponent {
 
     componentWillReceiveProps(newProps) {
         // These two properties will change when the structure changes, so we need to re-build the tree when this happens.
-        if (newProps.root !== this.props.root || newProps.getChildren !== this.props.getChildren) {
+        if (newProps.root !== this.props.root ||
+            newProps.getChildren !== this.props.getChildren ||
+            newProps.defaultRowHeight !== this.props.defaultRowHeight) {
             this.refreshCachedMetadata(newProps);
         }
 
@@ -219,7 +226,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (this.props.onRowsRendered !== undefined && prevState.currNodePos !== this.props.currNodePos) {
+        if (this.props.onRowsRendered !== undefined && prevState.currNodePos !== this.state.currNodePos) {
             const range = this.rowRenderRange;
             const visibleStartInfo = this.nodePosCache[range.visibleStart];
             const visibleEndInfo = this.nodePosCache[range.visibleEnd];
@@ -277,9 +284,13 @@ export default class StickyTree extends React.PureComponent {
         return this.renderParentContainer(path[0], indexesToRender);
     }
 
+    getNodeHeight(node) {
+        return (node.height !== undefined) ? node.height : this.props.defaultRowHeight;
+    }
+
     renderParentContainer(parent, indexesToRender) {
         return (
-            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%', height: parent.totalHeight - parent.height }}>
+            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%', height: parent.totalHeight - this.getNodeHeight(parent) }}>
                 {this.renderChildren(parent, indexesToRender)}
             </div>
         );
@@ -299,7 +310,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     getClientNodeStyle(node) {
-        const style = { height: node.height };
+        const style = { height: this.getNodeHeight(node) };
         if (node.isSticky) {
             style.position = 'sticky';
             style.top = node.stickyTop;
@@ -313,7 +324,7 @@ export default class StickyTree extends React.PureComponent {
         return  {
             position: 'absolute',
             top,
-            height: node.height,
+            height: this.getNodeHeight(node),
             width: '100%'
         }
     }
