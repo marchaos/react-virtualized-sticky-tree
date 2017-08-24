@@ -14,6 +14,9 @@ export default class AutoSizedStickyTree extends React.PureComponent {
                 bounds={true}
                 onResize={rect => {
                     this.setState({ width: rect.bounds.width, height: rect.bounds.height });
+                    if (this.props.onResize !== undefined) {
+                        this.props.onResize(rect);
+                    }
                 }}
             >
                 {({ measureRef }) => (
