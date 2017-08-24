@@ -127,9 +127,9 @@ export default class StickyTree extends React.PureComponent {
      *    ...
      *  ]
      */
-    flattenTree(node, getChildren = this.props.getChildren, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
+    flattenTree(node, props = this.props, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
-        const height = this.getNodeHeight(node);
+        const height = (node.height !== undefined) ? node.height : props.defaultRowHeight;
 
         const nodeInfo = {
             id: node.id,
@@ -150,14 +150,14 @@ export default class StickyTree extends React.PureComponent {
 
         context.totalHeight += height;
 
-        const children = getChildren(node.id);
+        const children = props.getChildren(node.id);
         if (Array.isArray(children)) {
             nodeInfo.children = [];
             for (let i = 0; i < children.length; i++) {
                 // Need to reset parentIndex here as we are recursive.
                 context.parentIndex = index;
                 const child = children[i];
-                this.flattenTree(child, getChildren, nodes, context);
+                this.flattenTree(child, props, nodes, context);
             }
         }
 
@@ -243,7 +243,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     refreshCachedMetadata(props) {
-        this.nodePosCache = this.flattenTree(props.root, props.getChildren);
+        this.nodePosCache = this.flattenTree(props.root, props);
         // Need to re-render as the curr node may not be in view
         if (this.elem) {
             // We need to find the the closest node to where we are scrolled to since the structure of the
@@ -284,13 +284,9 @@ export default class StickyTree extends React.PureComponent {
         return this.renderParentContainer(path[0], indexesToRender);
     }
 
-    getNodeHeight(node) {
-        return (node.height !== undefined) ? node.height : this.props.defaultRowHeight;
-    }
-
     renderParentContainer(parent, indexesToRender) {
         return (
-            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%', height: parent.totalHeight - this.getNodeHeight(parent) }}>
+            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%', height: parent.totalHeight - parent.height }}>
                 {this.renderChildren(parent, indexesToRender)}
             </div>
         );
@@ -310,7 +306,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     getClientNodeStyle(node) {
-        const style = { height: this.getNodeHeight(node) };
+        const style = { height: node.height };
         if (node.isSticky) {
             style.position = 'sticky';
             style.top = node.stickyTop;
@@ -324,7 +320,7 @@ export default class StickyTree extends React.PureComponent {
         return  {
             position: 'absolute',
             top,
-            height: this.getNodeHeight(node),
+            height: node.height,
             width: '100%'
         }
     }
