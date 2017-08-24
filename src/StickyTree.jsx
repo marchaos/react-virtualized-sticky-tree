@@ -187,41 +187,128 @@ export default class StickyTree extends React.PureComponent {
         }
     }
 
-    getNodeIndex(id) {
+    /**
+     * Returns the index of the node in a flat list tree (post-order traversal).
+     *
+     * @param nodeId The node index to get the index for.
+     * @returns {number}
+     */
+    getNodeIndex(nodeId) {
         // TODO: Might be best to create a lookup to support this.
         for (let i = 0, l = this.nodePosCache.length; i < l; ++i) {
-            if (this.nodePosCache[i].id === id) {
+            if (this.nodePosCache[i].id === nodeId) {
                 return i;
             }
         }
         return -1;
     }
 
-    isNodeInView(node) {
-        return this.isIndexInView(this.getNodeIndex(node));
+    /**
+     * Returns true if the node is completely visible and is not obscured.
+     * This will return false when the node is partially obscured.
+     *
+     * @param nodeId The id of the node to check
+     * @returns {boolean}
+     */
+    isNodeVisible(nodeId) {
+        return this.isIndexVisible(this.getNodeIndex(nodeId));
     }
 
     /**
-     * Returns true if the node is within the view. Note this this will return FALSE for visible sticky nodes that are partially out of
-     * view disregarding sticky, which is useful when the node will become unstuck. This may occur when the node is collapsed in a tree.
-     * In this case, you want to scroll this node back into view so that the collapsed node stays in the same position.
+     * Returns true if the node is completely visible and is not obscured.
+     * This will return false when the node is partially obscured.
      *
-     * @param index
+     * @param index The index of the node to check, generally retrieved via getNodeIndex()
      * @returns {boolean}
      */
-    isIndexInView(index) {
+    isIndexVisible(index) {
+        const inView = this.isIndexInViewport(index);
+        if (inView) {
+            const node = this.nodePosCache[index];
+            // If this node is in view, new need to check to see if it is obscured by a sticky parent.
+            // Note that this does not handle weird scenarios where the node's parent has a sticky top which is less than other ancestors.
+            // Or any z-index weirdness.
+            const path = this.getParentPath(index, false);
+            for (let i = 0; i < path.length; i++) {
+                const ancestor = path[i];
+                // If the ancestor is sticky and the node is in view, then it must be stuck to the top
+                if (ancestor.isSticky) {
+                    if (ancestor.stickyTop + ancestor.height > node.top - this.elem.scrollTop) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the node is within the view port window. Note this this will return FALSE for visible sticky nodes that are
+     * partially out of view disregarding sticky, which is useful when the node will become unstuck. This may occur when the node is
+     * collapsed in a tree. In this case, you want to scroll this node back into view so that the collapsed node stays in the same position.
+     *
+     * @param nodeId The id of the node to check
+     * @returns {boolean}
+     */
+    isNodeInViewport(nodeId) {
+        return this.isIndexInViewport(this.getNodeIndex(nodeId));
+    }
+
+    /**
+     * Returns true if the node is within the view port window. Note this this will return FALSE for visible sticky nodes that are
+     * partially out of view disregarding sticky, which is useful when the node will become unstuck. This may occur when the node is
+     * collapsed in a tree. In this case, you want to scroll this node back into view so that the collapsed node stays in the same position.
+     *
+     * This also returns false if the node is partially out of view.
+     *
+     * @param index The node index, generally retrieved via getNodeIndex()
+     * @returns {boolean}
+     */
+    isIndexInViewport(index) {
         let node = this.nodePosCache[index];
-        return this.elem.scrollTop <= node.top - node.stickyTop;
+        return this.elem.scrollTop <= node.top - node.stickyTop && this.elem.scrollTop + this.props.height >= node.top + node.height;
     }
 
-    scrollNodeIntoView(node) {
-        this.scrollIndexIntoView(this.getNodeIndex(node));
+    /**
+     * Scrolls the node into view so that it is visible.
+     *
+     * @param nodeId The node id of the node to scroll into view.
+     * @param alignToTop if true, the node will aligned to the top of viewport, or sticky parent. If false, the bottom of the node will
+     * be aligned with the bottom of the viewport.
+     */
+    scrollNodeIntoView(nodeId, alignToTop = true) {
+        this.scrollIndexIntoView(this.getNodeIndex(nodeId), alignToTop);
     }
 
-    scrollIndexIntoView(scrollIndex) {
-        let node = this.nodePosCache[scrollIndex];
+    /**
+     * Scrolls the node into view so that it is visible.
+     *
+     * @param index The index of the node.
+     * @param alignToTop if true, the node will aligned to the top of viewport, or sticky parent. If false, the bottom of the node will
+     * be aligned with the bottom of the viewport.
+     */
+    scrollIndexIntoView(index, alignToTop = true) {
+        let node = this.nodePosCache[index];
         if (node !== undefined) {
-            this.elem.scrollTop = node.top - node.stickyTop;
+            if (alignToTop) {
+                if (node.isSticky) {
+                    this.elem.scrollTop = node.top - node.stickyTop;
+                } else {
+                    const path = this.getParentPath(index, false);
+                    for (let i = 0; i < path.length; i++) {
+                        const ancestor = path[i];
+                        if (ancestor.isSticky) {
+                            this.elem.scrollTop = node.top - ancestor.stickyTop - ancestor.height;
+                            return;
+                        }
+                    }
+                    // Fallback if nothing is sticky.
+                    this.elem.scrollTop = node.top;
+                }
+            } else {
+                this.elem.scrollTop = (node.top - this.props.height) + node.height;
+            }
         }
     }
 
@@ -286,7 +373,8 @@ export default class StickyTree extends React.PureComponent {
 
     renderParentContainer(parent, indexesToRender) {
         return (
-            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list" style={{ position: 'absolute', width: '100%', height: parent.totalHeight - parent.height }}>
+            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list"
+                 style={{ position: 'absolute', width: '100%', height: parent.totalHeight - parent.height }}>
                 {this.renderChildren(parent, indexesToRender)}
             </div>
         );
@@ -298,7 +386,8 @@ export default class StickyTree extends React.PureComponent {
 
     renderChildWithChildren(child, top, indexesToRender) {
         return (
-            <div key={`rv-sticky-parent-node-${child.id}`} className="rv-sticky-parent-node" style={this.getChildContainerStyle(child, top)}>
+            <div key={`rv-sticky-parent-node-${child.id}`} className="rv-sticky-parent-node"
+                 style={this.getChildContainerStyle(child, top)}>
                 {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
                 {this.renderParentContainer(child, indexesToRender)}
             </div>
@@ -317,12 +406,12 @@ export default class StickyTree extends React.PureComponent {
     }
 
     getClientLeafNodeStyle(node, top) {
-        return  {
+        return {
             position: 'absolute',
             top,
             height: node.height,
             width: '100%'
-        }
+        };
     }
 
     renderChildren(parent, indexesToRender) {
@@ -364,7 +453,7 @@ export default class StickyTree extends React.PureComponent {
      */
     getRenderRowRange() {
         // Needs to be at least 1
-        let overscanRowCount = (this.props.overscanRowCount > 0) ? this.props.overscanRowCount: 1;
+        let overscanRowCount = (this.props.overscanRowCount > 0) ? this.props.overscanRowCount : 1;
         let start = this.state.currNodePos - overscanRowCount;
         if (start < 0) {
             start = 0;
@@ -386,9 +475,10 @@ export default class StickyTree extends React.PureComponent {
     /**
      * Returns the parent path from nodePosCache for the specified index within nodePosCache.
      * @param nodeIndex
+     * @param topDownOrder if true, the array with index 0 will be the root node, otherwise 0 will be the immediate parent.
      * @returns {Array<Node>}
      */
-    getParentPath(nodeIndex) {
+    getParentPath(nodeIndex, topDownOrder = true) {
         let currNode = this.nodePosCache[nodeIndex];
         const path = [currNode];
         while (currNode) {
@@ -397,7 +487,7 @@ export default class StickyTree extends React.PureComponent {
                 path.push(currNode);
             }
         }
-        return path.reverse();
+        return (topDownOrder) ? path.reverse() : path;
     }
 
     /**
