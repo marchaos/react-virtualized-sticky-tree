@@ -364,17 +364,20 @@ export default class StickyTree extends React.PureComponent {
         if (this.props.renderRoot) {
             return (
                 <div className="rv-sticky-node-list" style={{ width: '100%', position: 'absolute', top: 0 }}>
-                    {this.renderChildWithChildren(path[0], 0, indexesToRender)}
+                    {this.renderChildWithChildren(this.nodePosCache[0], 0, indexesToRender)}
                 </div>
             );
         }
-        return this.renderParentContainer(path[0], indexesToRender);
+        return this.renderParentContainer(this.nodePosCache[0], indexesToRender);
     }
 
     renderParentContainer(parent, indexesToRender) {
         return (
-            <div key={`rv-sticky-node-list-${parent.id}`} className="rv-sticky-node-list"
-                 style={{ position: 'absolute', width: '100%', height: parent.totalHeight - parent.height }}>
+            <div
+                key={`rv-sticky-node-list-${parent.id}`}
+                className="rv-sticky-node-list"
+                style={{ position: 'absolute', width: '100%', height: parent.totalHeight - parent.height }}
+            >
                 {this.renderChildren(parent, indexesToRender)}
             </div>
         );
@@ -480,7 +483,7 @@ export default class StickyTree extends React.PureComponent {
      */
     getParentPath(nodeIndex, topDownOrder = true) {
         let currNode = this.nodePosCache[nodeIndex];
-        const path = [currNode];
+        const path = [];
         while (currNode) {
             currNode = this.nodePosCache[currNode.parentIndex];
             if (currNode) {
