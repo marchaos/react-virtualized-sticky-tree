@@ -95,12 +95,19 @@ export default class StickyTree extends React.PureComponent {
         /**
          * Specifies the default row height which will be used if the child or root object do not have a height specified.
          */
-        defaultRowHeight: PropTypes.number
+        defaultRowHeight: PropTypes.number,
+
+        /**
+         * If true, all leaf nodes will be wrapped with a div, even when they are not sticky. this may help with certain tree structures where you need a constant key
+         * for the element so that it is not recreated when React dom diffing occurs.
+         */
+        wrapAllLeafNodes: PropTypes.bool
     };
 
     static defaultProps = {
         overscanRowCount: 10,
-        renderRoot: true
+        renderRoot: true,
+        wrapAllLeafNodes: false
     };
 
     constructor(props) {
@@ -374,7 +381,6 @@ export default class StickyTree extends React.PureComponent {
     renderParentContainer(parent, indexesToRender) {
         return (
             <div
-                key={`rv-sticky-node-list-${parent.id}`}
                 className="rv-sticky-node-list"
                 style={{ position: 'absolute', width: '100%', height: parent.totalHeight - parent.height }}
             >
@@ -389,7 +395,7 @@ export default class StickyTree extends React.PureComponent {
 
     renderChildWithChildren(child, top, indexesToRender) {
         return (
-            <div key={`rv-sticky-parent-node-${child.id}`} className="rv-sticky-parent-node"
+            <div key={`rv-node-${child.id}`} className="rv-sticky-parent-node"
                  style={this.getChildContainerStyle(child, top)}>
                 {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
                 {this.renderParentContainer(child, indexesToRender)}
@@ -429,18 +435,18 @@ export default class StickyTree extends React.PureComponent {
                 } else {
                     // Sticky nodes will need a container so that their top is correct. The sticky node itself will have a top
                     // of the offset where it should stick, which would conflict with the absolute position of the node.
-                    if (child.isSticky) {
+                   if (child.isSticky || this.props.wrapAllLeafNodes) {
                         nodes.push(
                             <div
                                 className="rv-sticky-leaf-node"
-                                key={child.id}
+                                key={`rv-node-${child.id}`}
                                 style={this.getChildContainerStyle(child, top)}>
                                 {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
                             </div>
                         );
-                    } else {
-                        nodes.push(this.props.rowRenderer({ id: child.id, style: this.getClientLeafNodeStyle(child, top) }));
-                    }
+                   } else {
+                       nodes.push(this.props.rowRenderer({ id: child.id, style: this.getClientLeafNodeStyle(child, top) }));
+                   }
                 }
             }
             // Needs to be on the outside so that we add the the top even if
