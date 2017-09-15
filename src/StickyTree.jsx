@@ -174,6 +174,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     componentWillMount() {
+        // TODO: really?
         this.recomputeTree();
     }
 
@@ -286,6 +287,37 @@ export default class StickyTree extends React.PureComponent {
      */
     scrollNodeIntoView(nodeId, alignToTop = true) {
         this.scrollIndexIntoView(this.getNodeIndex(nodeId), alignToTop);
+    }
+
+    /**
+     * Returns the top of the node with the specified id.
+     * @param nodeId
+     */
+    getNodeTop(nodeId) {
+        return this.getIndexTop(this.getNodeIndex(nodeId));
+    }
+
+    /**
+     * Returns the top of the node with the specified index.
+     * @param index
+     */
+    getIndexTop(index) {
+        return this.nodePosCache[index].top;
+    }
+
+    /**
+     * Returns the scrollTop of the scrollable element
+     */
+    getScrollTop() {
+        return this.elem.scrollTop;
+    }
+
+    /**
+     * Sets the scrollTop position of the scrollable element.
+     * @param scrollTop
+     */
+    setScrollTop(scrollTop) {
+        this.elem.scrollTop = scrollTop;
     }
 
     /**
