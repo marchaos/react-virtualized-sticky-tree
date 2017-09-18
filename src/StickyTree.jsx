@@ -216,10 +216,11 @@ export default class StickyTree extends React.PureComponent {
      * This will return false when the node is partially obscured.
      *
      * @param nodeId The id of the node to check
+     * @param includeObscured if true, this method will return true for partially visible nodes.
      * @returns {boolean}
      */
-    isNodeVisible(nodeId) {
-        return this.isIndexVisible(this.getNodeIndex(nodeId));
+    isNodeVisible(nodeId, includeObscured=false) {
+        return this.isIndexVisible(this.getNodeIndex(nodeId), includeObscured);
     }
 
     /**
@@ -227,12 +228,18 @@ export default class StickyTree extends React.PureComponent {
      * This will return false when the node is partially obscured.
      *
      * @param index The index of the node to check, generally retrieved via getNodeIndex()
+     * @param includeObscured if true, this method will return true for partially visible nodes.
      * @returns {boolean}
      */
-    isIndexVisible(index) {
-        const inView = this.isIndexInViewport(index);
+    isIndexVisible(index, includeObscured=false) {
+        let inView;
+        const node = this.nodePosCache[index];
+        if (!includeObscured) {
+            inView = this.isIndexInViewport(index);
+        } else {
+            inView = this.elem.scrollTop <= node.top + node.height - node.stickyTop && this.elem.scrollTop + this.props.height >= node.top;
+        }
         if (inView) {
-            const node = this.nodePosCache[index];
             // If this node is in view, new need to check to see if it is obscured by a sticky parent.
             // Note that this does not handle weird scenarios where the node's parent has a sticky top which is less than other ancestors.
             // Or any z-index weirdness.
@@ -241,7 +248,10 @@ export default class StickyTree extends React.PureComponent {
                 const ancestor = path[i];
                 // If the ancestor is sticky and the node is in view, then it must be stuck to the top
                 if (ancestor.isSticky) {
-                    if (ancestor.stickyTop + ancestor.height > node.top - this.elem.scrollTop) {
+                    if (!includeObscured && ancestor.stickyTop + ancestor.height > node.top - this.elem.scrollTop) {
+                        return false;
+                    }
+                    if (includeObscured && ancestor.stickyTop + ancestor.height > node.top + node.height - this.elem.scrollTop) {
                         return false;
                     }
                 }
