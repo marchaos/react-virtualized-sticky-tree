@@ -592,12 +592,12 @@ export default class StickyTree extends React.PureComponent {
     }
 
     onScroll(e) {
-        const scrollTop = e.target.scrollTop;
+        const { scrollTop, scrollLeft } = e.target;
         this.findClosestNode(scrollTop, this.state.currNodePos);
         this.scrollTop = scrollTop;
 
         if (this.props.onScroll !== undefined) {
-            this.props.onScroll({ scrollTop: this.scrollTop });
+            this.props.onScroll({ scrollTop, scrollLeft });
         }
     }
 
