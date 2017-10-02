@@ -31,7 +31,7 @@ export default class StickyTree extends React.PureComponent {
          * The function is called with an object in the form:
          *
          * <pre>
-         *     rowRenderer({ id, style })
+         *     rowRenderer({ id, style, nodeInfo })
          * </pre>
          *
          * The id is the id from either the root property passed to the tree, or one returned in the getChildren call.
