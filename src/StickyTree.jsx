@@ -134,7 +134,7 @@ export default class StickyTree extends React.PureComponent {
      *    ...
      *  ]
      */
-    flattenTree(node, props = this.props, nodes = [], context = { totalHeight: 0, parentIndex: undefined }) {
+    flattenTree(node, props = this.props, nodes = [], firstChild = false, lastChild = false, context = { totalHeight: 0, parentIndex: undefined }) {
         const index = nodes.length;
         const height = (node.height !== undefined) ? node.height : props.defaultRowHeight;
 
@@ -146,7 +146,9 @@ export default class StickyTree extends React.PureComponent {
             top: context.totalHeight,
             parentIndex: context.parentIndex,
             height,
-            index
+            index,
+            firstChild,
+            lastChild
         };
 
         nodes.push(nodeInfo);
@@ -164,7 +166,7 @@ export default class StickyTree extends React.PureComponent {
                 // Need to reset parentIndex here as we are recursive.
                 context.parentIndex = index;
                 const child = children[i];
-                this.flattenTree(child, props, nodes, context);
+                this.flattenTree(child, props, nodes, i === 0, i === children.length - 1, context);
             }
         }
 
@@ -439,7 +441,7 @@ export default class StickyTree extends React.PureComponent {
         return (
             <div key={`rv-node-${child.id}`} className="rv-sticky-parent-node"
                  style={this.getChildContainerStyle(child, top)}>
-                {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
+                {this.renderNode(child, this.getClientNodeStyle(child))}
                 {this.renderParentContainer(child, indexesToRender)}
             </div>
         );
@@ -483,11 +485,11 @@ export default class StickyTree extends React.PureComponent {
                                 className="rv-sticky-leaf-node"
                                 key={`rv-node-${child.id}`}
                                 style={this.getChildContainerStyle(child, top)}>
-                                {this.props.rowRenderer({ id: child.id, style: this.getClientNodeStyle(child) })}
+                                {this.renderNode(child,this.getClientNodeStyle(child))}
                             </div>
                         );
                    } else {
-                       nodes.push(this.props.rowRenderer({ id: child.id, style: this.getClientLeafNodeStyle(child, top) }));
+                       nodes.push(this.renderNode(child, this.getClientLeafNodeStyle(child, top)));
                    }
                 }
             }
@@ -496,6 +498,10 @@ export default class StickyTree extends React.PureComponent {
             top += child.totalHeight;
         });
         return nodes;
+    }
+
+    renderNode(nodeInfo, style) {
+        return this.props.rowRenderer({ id: nodeInfo.id, nodeInfo, style });
     }
 
     /**
