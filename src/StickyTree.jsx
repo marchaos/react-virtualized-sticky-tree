@@ -134,7 +134,7 @@ export default class StickyTree extends React.PureComponent {
      *    ...
      *  ]
      */
-    flattenTree(node, props = this.props, nodes = [], firstChild = false, lastChild = false, context = { totalHeight: 0, parentIndex: undefined }) {
+    flattenTree(node, props = this.props, nodes = [], isFirstChild = false, isLastChild = false, parentIndex = undefined, context = { totalHeight: 0 }) {
         const index = nodes.length;
         const height = (node.height !== undefined) ? node.height : props.defaultRowHeight;
 
@@ -144,17 +144,18 @@ export default class StickyTree extends React.PureComponent {
             stickyTop: node.stickyTop || 0,
             zIndex: node.zIndex || 0,
             top: context.totalHeight,
-            parentIndex: context.parentIndex,
+            parentIndex,
+            parentInfo: nodes[parentIndex],
             height,
             index,
-            firstChild,
-            lastChild
+            isFirstChild,
+            isLastChild
         };
 
         nodes.push(nodeInfo);
 
-        if (context.parentIndex !== undefined) {
-            nodes[context.parentIndex].children.push(index);
+        if (parentIndex !== undefined) {
+            nodes[parentIndex].children.push(index);
         }
 
         context.totalHeight += height;
@@ -164,9 +165,8 @@ export default class StickyTree extends React.PureComponent {
             nodeInfo.children = [];
             for (let i = 0; i < children.length; i++) {
                 // Need to reset parentIndex here as we are recursive.
-                context.parentIndex = index;
                 const child = children[i];
-                this.flattenTree(child, props, nodes, i === 0, i === children.length - 1, context);
+                this.flattenTree(child, props, nodes, i === 0, i === children.length - 1, index, context);
             }
         }
 
