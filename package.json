@@ -1,6 +1,6 @@
 {
   "name": "stick-tree-gh-pages",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "react": "latest",
     "react-dom": "latest",
     "react-measure": "^2.0.2",
-    "react-virtualized-sticky-tree": "^1.0.1"
+    "react-virtualized-sticky-tree": "^2.0.15"
   },
   "devDependencies": {
     "app-module-path": "latest",
@@ -39,37 +39,15 @@
     "babel-preset-stage-0": "latest",
     "babel-register": "^6.18.0",
     "case-sensitive-paths-webpack-plugin": "^1.1.4",
-    "chai": "^3.5.0",
-    "chai-enzyme": "latest",
-    "copy-webpack-plugin": "latest",
-    "cross-env": "3.2.4",
     "css-loader": "latest",
-    "enzyme": "latest",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "latest",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^5.0.0",
     "eslint-plugin-react": "^7.0.0",
-    "ignore-styles": "^5.0.1",
-    "image-webpack-loader": "latest",
-    "jsdom": "10.1.0",
-    "jsdom-global": "latest",
-    "json-loader": "^0.5.4",
-    "mocha": "^3.4.2",
-    "node-mocks-http": "^1.5.4",
     "node-sass": "latest",
-    "nodejs-fs-utils": "^1.0.26",
-    "npm-run-all": "latest",
-    "nyc": "^8.3.1",
-    "on-build-webpack": "^0.1.0",
-    "react-addons-test-utils": "latest",
-    "react-test-renderer": "latest",
-    "redux-mock-store": "^1.2.1",
     "sass-loader": "latest",
     "style-loader": "latest",
-    "testdouble": "^1.8.0",
-    "webpack": "2.2.1",
-    "webpack-bundle-size-analyzer": "^2.2.0",
-    "react-data-grid": "latest"
+    "webpack": "2.2.1"
   }
 }

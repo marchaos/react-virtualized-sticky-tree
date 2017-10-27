@@ -23,29 +23,25 @@ export default class StickyTreeWithRoot extends React.PureComponent {
         }
     }
 
-    getNodeStyle(node) {
-        const isSticky = !!node.children;
-        return (isSticky) ? {
-            position: 'sticky',
-            top: 30 * node.depth,
-            zIndex: 4 - node.depth,
-            height: 30,
-            backgroundColor: this.backgroundColors[node.depth]
-        } : {
-            backgroundColor: this.backgroundColors[node.depth],
-            height: 30
-        };
-    }
-
-    rowRenderer(id) {
+    rowRenderer({ id, style }) {
         const node = this.nodes[id];
+        style = { ...style, backgroundColor: this.backgroundColors[node.depth] };
+
         return (
-            <div className="my-sticky-row" style={this.getNodeStyle(node)}>{node.name}</div>
+            <div className="my-sticky-row" style={style}>{node.name}</div>
         );
     }
 
     getChildren(id) {
-        return this.nodes[id].children;
+        if (this.nodes[id].children) {
+            return this.nodes[id].children.map(childId => ({
+                id: childId,
+                height: 30,
+                isSticky: !!this.nodes[childId].children,
+                stickyTop: 30 * this.nodes[childId].depth,
+                zIndex: 4 - this.nodes[childId].depth,
+            }));
+        }
     }
 
     render() {
@@ -62,11 +58,10 @@ export default class StickyTreeWithRoot extends React.PureComponent {
                         <StickyTree
                             width={this.state.dimensions.width}
                             height={this.state.dimensions.height}
-                            root={0}
+                            root={{id: 0, height: 30, isSticky: true, top: 0, zIndex: 4}}
                             renderRoot={true}
                             rowRenderer={this.rowRenderer}
                             getChildren={this.getChildren}
-                            getHeight={() => 30}
                             overscanRowCount={20}
                         />
                     </div>)
