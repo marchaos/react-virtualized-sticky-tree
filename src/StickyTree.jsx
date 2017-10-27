@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import vendorSticky from './vendorSticky';
 
 export default class StickyTree extends React.PureComponent {
 
@@ -450,7 +451,7 @@ export default class StickyTree extends React.PureComponent {
     getClientNodeStyle(node) {
         const style = { height: node.height };
         if (node.isSticky) {
-            style.position = 'sticky';
+            style.position = vendorSticky();
             style.top = node.stickyTop;
             style.zIndex = node.zIndex;
         }
