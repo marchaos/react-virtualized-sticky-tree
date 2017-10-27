@@ -21,7 +21,7 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-measure": "^2.0.2",
-    "react-virtualized-sticky-tree": "^2.0.15"
+    "react-virtualized-sticky-tree": "^2.0.16"
   },
   "devDependencies": {
     "app-module-path": "latest",
