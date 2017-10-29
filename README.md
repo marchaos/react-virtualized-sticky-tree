@@ -150,4 +150,8 @@ or within render()
 
 ## Supported Browsers
 
-Rendering tree structures is supported in all modern browsers. position: sticky has only been tested in Chrome 59 and Firefox 54, but should work in Edge, Safari and Opera. See http://caniuse.com/#search=position%3Asticky
+* Tested with Chrome 59+
+* Tested with Safari 11+
+* Tested with Firefox 54+
+
+Rendering tree structures is supported in all modern browsers. For position: sticky, See http://caniuse.com/#search=position%3Asticky
