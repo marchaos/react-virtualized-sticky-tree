@@ -2,6 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import vendorSticky from './vendorSticky';
 
+const SCROLL_REASON = {
+    OBSERVED: 'observed',
+    REQUESTED: 'requested'
+};
+
 export default class StickyTree extends React.PureComponent {
 
     static propTypes = {
@@ -116,10 +121,10 @@ export default class StickyTree extends React.PureComponent {
         this.onScroll = this.onScroll.bind(this);
 
         this.state = {
+            scrollTop: 0,
             currNodePos: 0
         };
 
-        this.scrollTop = 0;
         this.nodePosCache = [];
         this.rowRenderRange = undefined;
     }
@@ -187,10 +192,6 @@ export default class StickyTree extends React.PureComponent {
             newProps.getChildren !== this.props.getChildren ||
             newProps.defaultRowHeight !== this.props.defaultRowHeight) {
             this.refreshCachedMetadata(newProps);
-        }
-
-        if (newProps.scrollTop !== undefined && newProps.scrollTop >= 0 && newProps.scrollTop !== this.scrollTop) {
-            this.elem.scrollTop = newProps.scrollTop;
         }
 
         if (newProps.scrollIndex !== undefined && newProps.scrollIndex >= 0) {
@@ -291,16 +292,6 @@ export default class StickyTree extends React.PureComponent {
         return this.elem.scrollTop <= node.top - node.stickyTop && this.elem.scrollTop + this.props.height >= node.top + node.height;
     }
 
-    /**
-     * Scrolls the node into view so that it is visible.
-     *
-     * @param nodeId The node id of the node to scroll into view.
-     * @param alignToTop if true, the node will aligned to the top of viewport, or sticky parent. If false, the bottom of the node will
-     * be aligned with the bottom of the viewport.
-     */
-    scrollNodeIntoView(nodeId, alignToTop = true) {
-        this.scrollIndexIntoView(this.getNodeIndex(nodeId), alignToTop);
-    }
 
     /**
      * Returns the top of the node with the specified id.
@@ -325,12 +316,26 @@ export default class StickyTree extends React.PureComponent {
         return this.elem.scrollTop;
     }
 
+
     /**
      * Sets the scrollTop position of the scrollable element.
      * @param scrollTop
      */
     setScrollTop(scrollTop) {
-        this.elem.scrollTop = scrollTop;
+        if (!isNaN(scrollTop)) {
+            this.setState({ scrollTop, scrollReason: SCROLL_REASON.REQUESTED });
+        }
+    }
+
+    /**
+     * Scrolls the node into view so that it is visible.
+     *
+     * @param nodeId The node id of the node to scroll into view.
+     * @param alignToTop if true, the node will aligned to the top of viewport, or sticky parent. If false, the bottom of the node will
+     * be aligned with the bottom of the viewport.
+     */
+    scrollNodeIntoView(nodeId, alignToTop = true) {
+        this.scrollIndexIntoView(this.getNodeIndex(nodeId), alignToTop);
     }
 
     /**
@@ -343,28 +348,38 @@ export default class StickyTree extends React.PureComponent {
     scrollIndexIntoView(index, alignToTop = true) {
         let node = this.nodePosCache[index];
         if (node !== undefined) {
+            let scrollTop;
             if (alignToTop) {
                 if (node.isSticky) {
-                    this.elem.scrollTop = node.top - node.stickyTop;
+                    scrollTop = node.top - node.stickyTop;
                 } else {
                     const path = this.getParentPath(index, false);
                     for (let i = 0; i < path.length; i++) {
                         const ancestor = path[i];
                         if (ancestor.isSticky) {
-                            this.elem.scrollTop = node.top - ancestor.stickyTop - ancestor.height;
-                            return;
+                            scrollTop = node.top - ancestor.stickyTop - ancestor.height;
+                            break;
                         }
                     }
-                    // Fallback if nothing is sticky.
-                    this.elem.scrollTop = node.top;
+                    if (scrollTop === undefined) {
+                        // Fallback if nothing is sticky.
+                        scrollTop = node.top;
+                    }
                 }
             } else {
-                this.elem.scrollTop = (node.top - this.props.height) + node.height;
+                scrollTop = (node.top - this.props.height) + node.height;
             }
+            this.setScrollTop(scrollTop);
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
+        if (this.state.scrollReason === SCROLL_REASON.REQUESTED) {
+            if (this.state.scrollTop >= 0 && this.state.scrollTop !== this.elem.scrollTop) {
+                this.elem.scrollTop = this.state.scrollTop;
+            }
+        }
+
         if (this.props.onRowsRendered !== undefined && prevState.currNodePos !== this.state.currNodePos) {
             const range = this.rowRenderRange;
             const visibleStartInfo = this.nodePosCache[range.visibleStart];
@@ -518,7 +533,7 @@ export default class StickyTree extends React.PureComponent {
         }
         let visibleEnd = this.state.currNodePos + 1;
 
-        while (this.nodePosCache[visibleEnd] && this.nodePosCache[visibleEnd].top < this.scrollTop + this.props.height) {
+        while (this.nodePosCache[visibleEnd] && this.nodePosCache[visibleEnd].top < this.state.scrollTop + this.props.height) {
             visibleEnd++;
         }
 
@@ -589,10 +604,10 @@ export default class StickyTree extends React.PureComponent {
      */
     findClosestNode(scrollTop, currNodePos) {
         let pos;
-        if (scrollTop > this.scrollTop || currNodePos === 0) {
+        if (scrollTop > this.state.scrollTop || currNodePos === 0) {
             pos = this.forwardSearch(scrollTop, currNodePos);
         }
-        if (scrollTop < this.scrollTop || pos === undefined) {
+        if (scrollTop < this.state.scrollTop || pos === undefined) {
             pos = this.backwardSearch(scrollTop, currNodePos);
         }
         this.setState({ currNodePos: pos });
@@ -601,10 +616,11 @@ export default class StickyTree extends React.PureComponent {
     onScroll(e) {
         const { scrollTop, scrollLeft } = e.target;
         this.findClosestNode(scrollTop, this.state.currNodePos);
-        this.scrollTop = scrollTop;
+
+        this.setState({scrollTop, scrollReason: SCROLL_REASON.OBSERVED});
 
         if (this.props.onScroll !== undefined) {
-            this.props.onScroll({ scrollTop, scrollLeft });
+            this.props.onScroll({ scrollTop, scrollLeft, scrollReason: SCROLL_REASON.OBSERVED });
         }
     }
 
