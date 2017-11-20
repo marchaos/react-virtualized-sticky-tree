@@ -182,15 +182,19 @@ export default class StickyTree extends React.PureComponent {
     }
 
     componentWillMount() {
-        // TODO: really?
-        this.recomputeTree();
+        this.refreshCachedMetadata(this.props);
+    }
+
+    hasStructureChanged(newProps) {
+        return (newProps.root !== this.props.root ||
+            newProps.getChildren !== this.props.getChildren ||
+            newProps.defaultRowHeight !== this.props.defaultRowHeight);
+
     }
 
     componentWillReceiveProps(newProps) {
         // These two properties will change when the structure changes, so we need to re-build the tree when this happens.
-        if (newProps.root !== this.props.root ||
-            newProps.getChildren !== this.props.getChildren ||
-            newProps.defaultRowHeight !== this.props.defaultRowHeight) {
+        if (this.hasStructureChanged(newProps)) {
             this.refreshCachedMetadata(newProps);
         }
 
@@ -380,7 +384,7 @@ export default class StickyTree extends React.PureComponent {
             }
         }
 
-        if (this.props.onRowsRendered !== undefined && prevState.currNodePos !== this.state.currNodePos) {
+        if (this.props.onRowsRendered !== undefined && (prevState.currNodePos !== this.state.currNodePos || this.hasStructureChanged(prevProps))) {
             const range = this.rowRenderRange;
             const visibleStartInfo = this.nodePosCache[range.visibleStart];
             const visibleEndInfo = this.nodePosCache[range.visibleEnd];
