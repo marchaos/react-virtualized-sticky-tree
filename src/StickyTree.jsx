@@ -122,7 +122,9 @@ export default class StickyTree extends React.PureComponent {
 
         this.state = {
             scrollTop: 0,
-            currNodePos: 0
+            currNodePos: 0,
+            // used to know when an update was caused by a scroll so that we don't unnecessarily re-render.
+            scrollTick: false
         };
 
         this.nodePosCache = [];
@@ -205,7 +207,9 @@ export default class StickyTree extends React.PureComponent {
     }
 
     componentWillUpdate(newProps, newState) {
-        this.storeRenderTree(newProps, newState);
+        if (newState.scrollTick === this.state.scrollTick || newState.currNodePos !== this.state.currNodePos) {
+            this.storeRenderTree(newProps, newState);
+        }
     }
 
     /**
@@ -630,7 +634,7 @@ export default class StickyTree extends React.PureComponent {
         const { scrollTop, scrollLeft } = e.target;
         this.findClosestNode(scrollTop, this.state.currNodePos);
 
-        this.setState({ scrollTop, scrollReason: SCROLL_REASON.OBSERVED });
+        this.setState({ scrollTop, scrollReason: SCROLL_REASON.OBSERVED, scrollTick: !this.state.scrollTick });
 
         if (this.props.onScroll !== undefined) {
             this.props.onScroll({ scrollTop, scrollLeft, scrollReason: SCROLL_REASON.OBSERVED });
