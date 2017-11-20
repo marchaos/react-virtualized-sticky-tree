@@ -242,7 +242,7 @@ export default class StickyTree extends React.PureComponent {
 
     /**
      * Returns true if the node is completely visible and is not obscured.
-     * This will return false when the node is partially obscured.
+     * This will return false when the node is partially obscured, unless includeObscured is set to true.
      *
      * @param index The index of the node to check, generally retrieved via getNodeIndex()
      * @param includeObscured if true, this method will return true for partially visible nodes.
@@ -251,16 +251,21 @@ export default class StickyTree extends React.PureComponent {
     isIndexVisible(index, includeObscured = false) {
         let inView;
         const node = this.nodePosCache[index];
+
+        if (node.isSticky && index === this.state.currNodePos || this.getParentPath(this.state.currNodePos).includes(this.nodePosCache[index])) {
+            return true;
+        }
+
         if (!includeObscured) {
             inView = this.isIndexInViewport(index);
         } else {
             inView = this.elem.scrollTop <= node.top + node.height - node.stickyTop && this.elem.scrollTop + this.props.height >= node.top;
         }
         if (inView) {
+            const path = this.getParentPath(index, false);
             // If this node is in view, new need to check to see if it is obscured by a sticky parent.
             // Note that this does not handle weird scenarios where the node's parent has a sticky top which is less than other ancestors.
             // Or any z-index weirdness.
-            const path = this.getParentPath(index, false);
             for (let i = 0; i < path.length; i++) {
                 const ancestor = path[i];
                 // If the ancestor is sticky and the node is in view, then it must be stuck to the top
