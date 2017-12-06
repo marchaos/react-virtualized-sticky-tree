@@ -435,6 +435,11 @@ export default class StickyTree extends React.PureComponent {
         this.treeToRender = this.renderParentTree(props, state);
     }
 
+    forceUpdate() {
+        this.storeRenderTree(this.props, this.state);
+        super.forceUpdate();
+    }
+
     renderParentTree(props, state) {
         this.rowRenderRange = this.getRenderRowRange(props, state);
         const path = this.getParentPath(this.rowRenderRange.start);
