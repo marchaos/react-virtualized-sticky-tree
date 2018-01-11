@@ -91,7 +91,7 @@ Be sure to pass a sticky root node to StickyTree if it should be sticky
 
 If the containing element of your tree has a dynamic height, you can use [react-measure](https://github.com/souporserious/react-measure) to provide the width and height to sticky-tree so that it can resize to the available width.
 
-For Simplicity, [react-virtualized-sticky-tree] includes a component which uses react-measure to acieve this:
+For Simplicity, `react-virtualized-sticky-tree` includes a component which uses react-measure to acieve this:
 
 ```js
 import { AutoSizedStickyTree } from 'react-virtualized-sticky-tree';
