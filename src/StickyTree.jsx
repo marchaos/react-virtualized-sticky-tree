@@ -252,6 +252,10 @@ export default class StickyTree extends React.PureComponent {
         let inView;
         const node = this.nodePosCache[index];
 
+        if (!node) {
+            return false;
+        }
+
         if (node.isSticky && index === this.state.currNodePos || this.getParentPath(this.state.currNodePos).includes(this.nodePosCache[index])) {
             return true;
         }
