@@ -146,6 +146,7 @@ export default class StickyTree extends React.PureComponent {
         const index = nodes.length;
         const height = (node.height !== undefined) ? node.height : props.defaultRowHeight;
 
+        const parentInfo = nodes[parentIndex];
         const nodeInfo = {
             id: node.id,
             isSticky: node.isSticky || false,
@@ -153,7 +154,8 @@ export default class StickyTree extends React.PureComponent {
             zIndex: node.zIndex || 0,
             top: context.totalHeight,
             parentIndex,
-            parentInfo: nodes[parentIndex],
+            parentInfo: parentInfo,
+            depth: parentIndex !== undefined ? parentInfo.depth + 1 : 0,
             height,
             index,
             isFirstChild,
@@ -163,7 +165,7 @@ export default class StickyTree extends React.PureComponent {
         nodes.push(nodeInfo);
 
         if (parentIndex !== undefined) {
-            nodes[parentIndex].children.push(index);
+            parentInfo.children.push(index);
         }
 
         context.totalHeight += height;
