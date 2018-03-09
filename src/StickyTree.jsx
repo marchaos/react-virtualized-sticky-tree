@@ -170,7 +170,7 @@ export default class StickyTree extends React.PureComponent {
 
         context.totalHeight += height;
 
-        const children = props.getChildren(node.id);
+        const children = props.getChildren(node.id, nodeInfo);
         if (Array.isArray(children)) {
             nodeInfo.children = [];
             for (let i = 0; i < children.length; i++) {
