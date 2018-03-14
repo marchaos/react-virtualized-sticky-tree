@@ -127,7 +127,11 @@ export default class StickyTree extends React.PureComponent {
             scrollTick: false
         };
 
-        this.nodePosCache = [];
+        /**
+         * A flattened node array created using post-traversal order.
+         * @type {Array}
+         */
+        this.nodes = [];
         this.rowRenderRange = undefined;
     }
 
@@ -222,8 +226,8 @@ export default class StickyTree extends React.PureComponent {
      */
     getNodeIndex(nodeId) {
         // TODO: Might be best to create a lookup to support this.
-        for (let i = 0, l = this.nodePosCache.length; i < l; ++i) {
-            if (this.nodePosCache[i].id === nodeId) {
+        for (let i = 0, l = this.nodes.length; i < l; ++i) {
+            if (this.nodes[i].id === nodeId) {
                 return i;
             }
         }
@@ -252,13 +256,13 @@ export default class StickyTree extends React.PureComponent {
      */
     isIndexVisible(index, includeObscured = false) {
         let inView;
-        const node = this.nodePosCache[index];
+        const node = this.nodes[index];
 
         if (!node) {
             return false;
         }
 
-        if (node.isSticky && index === this.state.currNodePos || this.getParentPath(this.state.currNodePos).includes(this.nodePosCache[index])) {
+        if (node.isSticky && index === this.state.currNodePos || this.getParentPath(this.state.currNodePos).includes(this.nodes[index])) {
             return true;
         }
 
@@ -312,7 +316,7 @@ export default class StickyTree extends React.PureComponent {
      * @returns {boolean}
      */
     isIndexInViewport(index) {
-        let node = this.nodePosCache[index];
+        let node = this.nodes[index];
         return this.elem.scrollTop <= node.top - node.stickyTop && this.elem.scrollTop + this.props.height >= node.top + node.height;
     }
 
@@ -330,7 +334,7 @@ export default class StickyTree extends React.PureComponent {
      * @param index
      */
     getIndexTop(index) {
-        return this.nodePosCache[index].top;
+        return this.nodes[index].top;
     }
 
     /**
@@ -370,7 +374,7 @@ export default class StickyTree extends React.PureComponent {
      * be aligned with the bottom of the viewport.
      */
     scrollIndexIntoView(index, alignToTop = true) {
-        let node = this.nodePosCache[index];
+        let node = this.nodes[index];
         if (node !== undefined) {
             let scrollTop;
             if (alignToTop) {
@@ -406,8 +410,8 @@ export default class StickyTree extends React.PureComponent {
 
         if (this.props.onRowsRendered !== undefined && (prevState.currNodePos !== this.state.currNodePos || this.hasStructureChanged(prevProps))) {
             const range = this.rowRenderRange;
-            const visibleStartInfo = this.nodePosCache[range.visibleStart];
-            const visibleEndInfo = this.nodePosCache[range.visibleEnd];
+            const visibleStartInfo = this.nodes[range.visibleStart];
+            const visibleEndInfo = this.nodes[range.visibleEnd];
 
             this.props.onRowsRendered({
                 overscanStartIndex: range.start,
@@ -415,13 +419,14 @@ export default class StickyTree extends React.PureComponent {
                 startIndex: range.visibleStart,
                 stopIndex: range.visibleEnd,
                 startNode: visibleStartInfo && visibleStartInfo.id,
-                endNode: visibleEndInfo && visibleEndInfo.id
+                endNode: visibleEndInfo && visibleEndInfo.id,
+                nodes: this.nodes
             });
         }
     }
 
     refreshCachedMetadata(props) {
-        this.nodePosCache = this.flattenTree(props.root, props);
+        this.nodes = this.flattenTree(props.root, props);
         // Need to re-render as the curr node may not be in view
         if (this.elem) {
             // We need to find the the closest node to where we are scrolled to since the structure of the
@@ -458,17 +463,17 @@ export default class StickyTree extends React.PureComponent {
 
         // The rest of the nodes within the range.
         for (let i = this.rowRenderRange.start; i <= this.rowRenderRange.end; i++) {
-            indexesToRender.add(this.nodePosCache[i].index);
+            indexesToRender.add(this.nodes[i].index);
         }
 
         if (this.props.renderRoot) {
             return (
                 <div className="rv-sticky-node-list" style={{ width: '100%', position: 'absolute', top: 0 }}>
-                    {this.renderChildWithChildren(props, state, this.nodePosCache[0], 0, indexesToRender)}
+                    {this.renderChildWithChildren(props, state, this.nodes[0], 0, indexesToRender)}
                 </div>
             );
         }
-        return this.renderParentContainer(props, state, this.nodePosCache[0], indexesToRender);
+        return this.renderParentContainer(props, state, this.nodes[0], indexesToRender);
     }
 
     renderParentContainer(props, state, parent, indexesToRender) {
@@ -520,7 +525,7 @@ export default class StickyTree extends React.PureComponent {
         const nodes = [];
         let top = 0;
         parent.children.forEach(index => {
-            const child = this.nodePosCache[index];
+            const child = this.nodes[index];
 
             if (indexesToRender.has(index)) {
                 if (child.children && child.children.length > 0) {
@@ -555,7 +560,7 @@ export default class StickyTree extends React.PureComponent {
 
     /**
      * Determines the start and end number of the range to be rendered.
-     * @returns {{start: number, end: number}} Indexes within nodePosCache
+     * @returns {{start: number, end: number}} Indexes within nodes
      */
     getRenderRowRange(props, state) {
         // Needs to be at least 1
@@ -566,29 +571,29 @@ export default class StickyTree extends React.PureComponent {
         }
         let visibleEnd = state.currNodePos + 1;
 
-        while (this.nodePosCache[visibleEnd] && this.nodePosCache[visibleEnd].top < state.scrollTop + props.height) {
+        while (this.nodes[visibleEnd] && this.nodes[visibleEnd].top < state.scrollTop + props.height) {
             visibleEnd++;
         }
 
         let end = visibleEnd + overscanRowCount;
-        if (end > this.nodePosCache.length - 1) {
-            end = this.nodePosCache.length - 1;
+        if (end > this.nodes.length - 1) {
+            end = this.nodes.length - 1;
         }
 
         return { start, end, visibleStart: state.currNodePos, visibleEnd };
     }
 
     /**
-     * Returns the parent path from nodePosCache for the specified index within nodePosCache.
+     * Returns the parent path from nodes for the specified index within nodes.
      * @param nodeIndex
      * @param topDownOrder if true, the array with index 0 will be the root node, otherwise 0 will be the immediate parent.
      * @returns {Array<Node>}
      */
     getParentPath(nodeIndex, topDownOrder = true) {
-        let currNode = this.nodePosCache[nodeIndex];
+        let currNode = this.nodes[nodeIndex];
         const path = [];
         while (currNode) {
-            currNode = this.nodePosCache[currNode.parentIndex];
+            currNode = this.nodes[currNode.parentIndex];
             if (currNode) {
                 path.push(currNode);
             }
@@ -604,13 +609,13 @@ export default class StickyTree extends React.PureComponent {
      * @returns {number}
      */
     forwardSearch(scrollTop, searchPos) {
-        const nodePosCache = this.nodePosCache;
-        for (let i = searchPos; i < nodePosCache.length; i++) {
-            if (nodePosCache[i].top >= scrollTop) {
+        const nodes = this.nodes;
+        for (let i = searchPos; i < nodes.length; i++) {
+            if (nodes[i].top >= scrollTop) {
                 return i;
             }
         }
-        return nodePosCache.length - 1;
+        return nodes.length - 1;
     }
 
     /**
@@ -621,9 +626,9 @@ export default class StickyTree extends React.PureComponent {
      * @returns {number}
      */
     backwardSearch(scrollTop, searchPos) {
-        const nodePosCache = this.nodePosCache;
+        const nodes = this.nodes;
         for (let i = searchPos; i >= 0; i--) {
-            if (nodePosCache[i].top <= scrollTop) {
+            if (nodes[i].top <= scrollTop) {
                 return i;
             }
         }
@@ -631,7 +636,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     /**
-     * Returns the closest node within nodePosCache.
+     * Returns the closest node within nodes.
      * @param scrollTop
      * @param currNodePos
      */
