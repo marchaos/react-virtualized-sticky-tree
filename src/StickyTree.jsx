@@ -225,13 +225,7 @@ export default class StickyTree extends React.PureComponent {
      * @returns {number}
      */
     getNodeIndex(nodeId) {
-        // TODO: Might be best to create a lookup to support this.
-        for (let i = 0, l = this.nodes.length; i < l; ++i) {
-            if (this.nodes[i].id === nodeId) {
-                return i;
-            }
-        }
-        return -1;
+        return this.nodes.findIndex(node => node.id === nodeId);
     }
 
     /**
