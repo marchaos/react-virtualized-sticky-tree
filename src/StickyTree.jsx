@@ -235,6 +235,32 @@ export default class StickyTree extends React.PureComponent {
     }
 
     /**
+     * Returns the node that appears higher than this node (either a parent, sibling or child of the sibling above).
+     * @param nodeId The node to get the previous node of.
+     * @returns {*}
+     */
+    getPreviousNodeId(nodeId) {
+        const index = this.getNodeIndex(nodeId);
+        if (index !== -1) {
+            return this.nodes[index - 1];
+        }
+        return undefined;
+    }
+
+    /**
+     * Returns the node that appears lower than this node (sibling or sibling of the node's parent).
+     * @param nodeId The node to get the next node of.
+     * @returns {*}
+     */
+    getNextNodeId(nodeId) {
+        const index = this.getNodeIndex(nodeId);
+        if (index !== -1) {
+            return this.nodes[index + 1];
+        }
+        return undefined;
+    }
+
+    /**
      * Returns true if the node is completely visible and is not obscured.
      * This will return false when the node is partially obscured.
      *
