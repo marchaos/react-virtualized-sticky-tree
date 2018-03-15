@@ -185,7 +185,9 @@ export default class StickyTree extends React.PureComponent {
         const children = props.getChildren(node.id, nodeInfo);
 
         if (props.isModelImmutable) {
-            if (this.getChildrenCache[node.id] !== children) {
+            // If children is undefined, then it is probably a leaf node, so we will have to render this since we don't know if the node
+            // itself has changed.
+            if (children === undefined || this.getChildrenCache[node.id] !== children) {
                 delete this.rowRenderCache[node.id];
                 this.getChildrenCache[node.id] = children;
             }
