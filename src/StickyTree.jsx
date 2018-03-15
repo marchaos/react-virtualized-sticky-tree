@@ -107,13 +107,19 @@ export default class StickyTree extends React.PureComponent {
          * If true, all leaf nodes will be wrapped with a div, even when they are not sticky. this may help with certain tree structures where you need a constant key
          * for the element so that it is not recreated when React dom diffing occurs.
          */
-        wrapAllLeafNodes: PropTypes.bool
+        wrapAllLeafNodes: PropTypes.bool,
+
+        /**
+         * If true, we can make some assumptions about the results returned by getChildren() which improve rendering performance.
+         */
+        isModelImmutable: PropTypes.bool
     };
 
     static defaultProps = {
         overscanRowCount: 10,
         renderRoot: true,
-        wrapAllLeafNodes: false
+        wrapAllLeafNodes: false,
+        isModelImmutable: false
     };
 
     constructor(props) {
@@ -132,6 +138,8 @@ export default class StickyTree extends React.PureComponent {
          * @type {Array}
          */
         this.nodes = [];
+        this.getChildrenCache = {};
+        this.rowRenderCache = {};
         this.rowRenderRange = undefined;
     }
 
@@ -175,6 +183,16 @@ export default class StickyTree extends React.PureComponent {
         context.totalHeight += height;
 
         const children = props.getChildren(node.id, nodeInfo);
+
+        if (props.isModelImmutable) {
+            if (this.getChildrenCache[node.id] === children) {
+                nodeInfo.childrenMutated = false;
+            } else {
+                nodeInfo.childrenMutated = true;
+                this.getChildrenCache[node.id] = children;
+            }
+        }
+
         if (Array.isArray(children)) {
             nodeInfo.children = [];
             for (let i = 0; i < children.length; i++) {
@@ -236,7 +254,10 @@ export default class StickyTree extends React.PureComponent {
     getPreviousNodeId(nodeId) {
         const index = this.getNodeIndex(nodeId);
         if (index !== -1) {
-            return this.nodes[index - 1];
+            const node = this.nodes[index - 1];
+            if (node) {
+                return node.id;
+            }
         }
         return undefined;
     }
@@ -249,7 +270,10 @@ export default class StickyTree extends React.PureComponent {
     getNextNodeId(nodeId) {
         const index = this.getNodeIndex(nodeId);
         if (index !== -1) {
-            return this.nodes[index + 1];
+            const node = this.nodes[index + 1];
+            if (node) {
+                return node.id;
+            }
         }
         return undefined;
     }
@@ -267,7 +291,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     /**
-     * Returns true if the node is completely visible and is not obscured.
+     * Returns true if the node is completely visible and is not obscured, unless includeObscured is specified.
      * This will return false when the node is partially obscured, unless includeObscured is set to true.
      *
      * @param index The index of the node to check, generally retrieved via getNodeIndex()
@@ -575,7 +599,17 @@ export default class StickyTree extends React.PureComponent {
     }
 
     renderNode(props, state, nodeInfo, style) {
-        return props.rowRenderer({ id: nodeInfo.id, nodeInfo, style });
+        // If they have not mutated their getChildren, then no need to call them again for the same structure.
+        if (props.isModelImmutable && !nodeInfo.childrenMutated && this.rowRenderCache[nodeInfo.id]) {
+            return this.rowRenderCache[nodeInfo.id];
+        }
+
+        const renderedRow = props.rowRenderer({ id: nodeInfo.id, nodeInfo, style });
+
+        if (props.isModelImmutable) {
+            this.rowRenderCache[nodeInfo.id] = renderedRow;
+        }
+        return renderedRow;
     }
 
     /**
