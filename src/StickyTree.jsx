@@ -185,10 +185,8 @@ export default class StickyTree extends React.PureComponent {
         const children = props.getChildren(node.id, nodeInfo);
 
         if (props.isModelImmutable) {
-            if (this.getChildrenCache[node.id] === children) {
-                nodeInfo.childrenMutated = false;
-            } else {
-                nodeInfo.childrenMutated = true;
+            if (this.getChildrenCache[node.id] !== children) {
+                delete this.rowRenderCache[node.id];
                 this.getChildrenCache[node.id] = children;
             }
         }
@@ -600,7 +598,7 @@ export default class StickyTree extends React.PureComponent {
 
     renderNode(props, state, nodeInfo, style) {
         // If they have not mutated their getChildren, then no need to call them again for the same structure.
-        if (props.isModelImmutable && !nodeInfo.childrenMutated && this.rowRenderCache[nodeInfo.id]) {
+        if (props.isModelImmutable && this.rowRenderCache[nodeInfo.id]) {
             return this.rowRenderCache[nodeInfo.id];
         }
 
