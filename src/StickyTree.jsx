@@ -491,6 +491,8 @@ export default class StickyTree extends React.PureComponent {
     }
 
     forceUpdate() {
+        this.getChildrenCache = {};
+        this.rowRenderCache = {};
         this.storeRenderTree(this.props, this.state);
         super.forceUpdate();
     }
