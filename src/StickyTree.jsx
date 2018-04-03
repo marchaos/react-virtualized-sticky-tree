@@ -187,9 +187,17 @@ export default class StickyTree extends React.PureComponent {
         if (props.isModelImmutable) {
             // If children is undefined, then it is probably a leaf node, so we will have to render this since we don't know if the node
             // itself has changed.
-            if (children === undefined || this.getChildrenCache[node.id] !== children) {
+            let oldChildren = this.getChildrenCache[node.id];
+            if (children === undefined || oldChildren !== children) {
                 delete this.rowRenderCache[node.id];
                 this.getChildrenCache[node.id] = children;
+
+                // Check for structure changes...
+                if (children && oldChildren &&
+                    (children.length !== oldChildren.length || !children.every((child, i) => child.id === oldChildren[i].id))) {
+                    // We need to update the entire branch if the structure has changed.
+                    this.getBranchChildrenIds(children).forEach(id => delete this.rowRenderCache[id]);
+                }
             }
         }
 
@@ -205,6 +213,17 @@ export default class StickyTree extends React.PureComponent {
         nodeInfo.totalHeight = context.totalHeight - nodeInfo.top;
 
         return nodes;
+    }
+
+    getBranchChildrenIds(children, arr = []) {
+        if (!children) {
+            return arr;
+        }
+        children.forEach(child => {
+            arr.push(child.id);
+            this.getBranchChildrenIds(this.getChildrenCache[child.id], arr);
+        });
+        return arr;
     }
 
     componentWillMount() {
