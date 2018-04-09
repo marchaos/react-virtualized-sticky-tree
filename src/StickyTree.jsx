@@ -126,6 +126,10 @@ export default class StickyTree extends React.PureComponent {
         super(props);
         this.onScroll = this.onScroll.bind(this);
 
+        if (this.props.apiRef) {
+            this.props.apiRef(this);
+        }
+
         this.state = {
             scrollTop: 0,
             currNodePos: 0,
