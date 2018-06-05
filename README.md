@@ -33,17 +33,19 @@ const rowRenderer = ({ id, style }) => {
   return <div style={style}>{node.name}</div>
 };
 
-render(
-  <StickyTree
-    root={{ id: 'root', height: 30 }}
-    width={width}
-    height={height}
-    getChildren={getChildren}
-    rowRenderer={rowRenderer}
-    renderRoot={true}
-    overscanRowCount={20}
-  />
-);
+render() {
+  return (
+      <StickyTree
+        root={{ id: 'root', height: 30 }}
+        width={width}
+        height={height}
+        getChildren={getChildren}
+        rowRenderer={rowRenderer}
+        renderRoot={true}
+        overscanRowCount={20}
+      />
+  );
+)
 ```
 
 ## Nested Sticky Header Styles
