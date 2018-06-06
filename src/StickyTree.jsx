@@ -199,10 +199,13 @@ export default class StickyTree extends React.PureComponent {
                 // Check for structure changes...
                 if (children && oldChildren &&
                     (children.length !== oldChildren.length || !children.every((child, i) => child.id === oldChildren[i].id))) {
+                    this.structureChanged = true;
                     // We need to update the entire branch if the structure has changed.
                     this.getBranchChildrenIds(children).forEach(id => delete this.rowRenderCache[id]);
                 }
             }
+        } else {
+            this.structureChanged = true;
         }
 
         if (Array.isArray(children)) {
@@ -235,7 +238,7 @@ export default class StickyTree extends React.PureComponent {
         this.storeRenderTree(this.props, this.state);
     }
 
-    hasStructureChanged(newProps) {
+    treeDataUpdated(newProps) {
         return (newProps.root !== this.props.root ||
             newProps.getChildren !== this.props.getChildren ||
             newProps.defaultRowHeight !== this.props.defaultRowHeight);
@@ -244,7 +247,7 @@ export default class StickyTree extends React.PureComponent {
 
     componentWillReceiveProps(newProps) {
         // These two properties will change when the structure changes, so we need to re-build the tree when this happens.
-        if (this.hasStructureChanged(newProps)) {
+        if (this.treeDataUpdated(newProps)) {
             this.refreshCachedMetadata(newProps);
         }
 
@@ -418,8 +421,7 @@ export default class StickyTree extends React.PureComponent {
      */
     setScrollTop(scrollTop) {
         if (!isNaN(scrollTop)) {
-            this.findClosestNode(scrollTop, this.state.currNodePos);
-            this.setState({ scrollTop, scrollReason: SCROLL_REASON.REQUESTED });
+            this.setScrollTopAndClosestNode(scrollTop, this.state.currNodePos, SCROLL_REASON.REQUESTED);
         }
     }
 
@@ -476,7 +478,7 @@ export default class StickyTree extends React.PureComponent {
             }
         }
 
-        if (this.props.onRowsRendered !== undefined && (prevState.currNodePos !== this.state.currNodePos || this.hasStructureChanged(prevProps))) {
+        if (this.props.onRowsRendered !== undefined && (prevState.currNodePos !== this.state.currNodePos || this.treeDataUpdated(prevProps))) {
             const range = this.rowRenderRange;
             const visibleStartInfo = this.nodes[range.visibleStart];
             const visibleEndInfo = this.nodes[range.visibleEnd];
@@ -494,12 +496,16 @@ export default class StickyTree extends React.PureComponent {
     }
 
     refreshCachedMetadata(props) {
+        this.structureChanged = false;
         this.nodes = this.flattenTree(props.root, props);
-        // Need to re-render as the curr node may not be in view
-        if (this.elem) {
-            // We need to find the the closest node to where we are scrolled to since the structure of the
-            // the tree probably has changed.
-            this.findClosestNode(this.elem.scrollTop, 0);
+
+        if (this.structureChanged) {
+            // Need to re-render as the curr node may not be in view
+            if (this.elem) {
+                // We need to find the the closest node to where we are scrolled to since the structure of the
+                // the tree probably has changed.
+                this.setScrollTopAndClosestNode(this.elem.scrollTop, 0, SCROLL_REASON.REQUESTED);
+            }
         }
     }
 
@@ -717,11 +723,9 @@ export default class StickyTree extends React.PureComponent {
     }
 
     /**
-     * Returns the closest node within nodes.
-     * @param scrollTop
-     * @param currNodePos
+     * Sets the scroll top in state and finds and sets the closest node to that scroll top.
      */
-    findClosestNode(scrollTop, currNodePos) {
+    setScrollTopAndClosestNode(scrollTop, currNodePos, scrollReason) {
         let pos;
         if (scrollTop > this.state.scrollTop || currNodePos === 0) {
             pos = this.forwardSearch(scrollTop, currNodePos);
@@ -729,14 +733,14 @@ export default class StickyTree extends React.PureComponent {
         if (scrollTop < this.state.scrollTop || pos === undefined) {
             pos = this.backwardSearch(scrollTop, currNodePos);
         }
-        this.setState({ currNodePos: pos });
+        this.setState({ currNodePos: pos, scrollTop, scrollReason });
     }
 
     onScroll(e) {
         const { scrollTop, scrollLeft } = e.target;
-        this.findClosestNode(scrollTop, this.state.currNodePos);
+        this.setScrollTopAndClosestNode(scrollTop, this.state.currNodePos, scrollTop, SCROLL_REASON.OBSERVED);
 
-        this.setState({ scrollTop, scrollReason: SCROLL_REASON.OBSERVED, scrollTick: !this.state.scrollTick });
+        this.setState({ scrollTick: !this.state.scrollTick });
 
         if (this.props.onScroll !== undefined) {
             this.props.onScroll({ scrollTop, scrollLeft, scrollReason: SCROLL_REASON.OBSERVED });
