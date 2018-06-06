@@ -1,7 +1,7 @@
 {
   "name": "react-virtualized-sticky-tree",
   "description": "A React component for efficiently rendering tree like structures with support for position: sticky",
-  "version": "2.1.16",
+  "version": "2.1.17",
   "author": "Marc McIntyre <marchaos@gmail.com>",
   "license": "MIT",
   "main": "dist/commonjs/index.js",
@@ -35,8 +35,8 @@
     "url": "https://github.com/marchaos/react-virtualized-sticky-tree/issues"
   },
   "peerDependencies": {
-    "prop-types": "^15.5.10",
-    "react": "^15.6.1",
+    "prop-types": "^15.6.1",
+    "react": "^16.0.0",
     "react-measure": "^2.0.2"
   },
   "devDependencies": {
