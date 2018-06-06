@@ -418,6 +418,7 @@ export default class StickyTree extends React.PureComponent {
      */
     setScrollTop(scrollTop) {
         if (!isNaN(scrollTop)) {
+            this.findClosestNode(scrollTop, this.state.currNodePos);
             this.setState({ scrollTop, scrollReason: SCROLL_REASON.REQUESTED });
         }
     }
@@ -510,6 +511,7 @@ export default class StickyTree extends React.PureComponent {
     }
 
     storeRenderTree(props, state) {
+        this.renderCount = 0;
         this.treeToRender = this.renderParentTree(props, state);
     }
 
@@ -624,6 +626,8 @@ export default class StickyTree extends React.PureComponent {
     }
 
     renderNode(props, state, nodeInfo, style) {
+        this.renderCount++;
+
         // If they have not mutated their getChildren, then no need to call them again for the same structure.
         if (props.isModelImmutable && this.rowRenderCache[nodeInfo.id]) {
             return this.rowRenderCache[nodeInfo.id];
@@ -634,6 +638,9 @@ export default class StickyTree extends React.PureComponent {
         if (props.isModelImmutable) {
             this.rowRenderCache[nodeInfo.id] = renderedRow;
         }
+
+
+
         return renderedRow;
     }
 
