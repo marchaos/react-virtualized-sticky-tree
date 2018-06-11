@@ -163,11 +163,15 @@ export default class StickyTree extends React.PureComponent {
         const height = (node.height !== undefined) ? node.height : props.defaultRowHeight;
 
         const parentInfo = nodes[parentIndex];
+
+        const { id, isSticky = false, stickyTop = 0, zIndex = 0, ...rest } = node;
+
         const nodeInfo = {
-            id: node.id,
-            isSticky: node.isSticky || false,
-            stickyTop: node.stickyTop || 0,
-            zIndex: node.zIndex || 0,
+            id,
+            isSticky,
+            stickyTop,
+            zIndex,
+            ...rest,
             top: context.totalHeight,
             parentIndex,
             parentInfo: parentInfo,
