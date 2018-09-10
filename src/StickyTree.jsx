@@ -413,11 +413,12 @@ export default class StickyTree extends React.PureComponent {
 
     /**
      * Returns the scrollTop of the scrollable element
+     *
+     * @return returns -1 if the elem does not exist.
      */
     getScrollTop() {
-        return this.elem.scrollTop;
+        return this.elem ? this.elem.scrollTop : -1;
     }
-
 
     /**
      * Sets the scrollTop position of the scrollable element.
