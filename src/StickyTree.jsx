@@ -411,7 +411,8 @@ export default class StickyTree extends React.PureComponent {
      * @param index
      */
     getIndexTop(index) {
-        return this.nodes[index].top;
+        const node = this.nodes[index];
+        return node ? node.top : -1;
     }
 
     /**
