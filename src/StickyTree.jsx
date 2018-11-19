@@ -391,6 +391,9 @@ export default class StickyTree extends React.PureComponent {
      */
     isIndexInViewport(index) {
         let node = this.nodes[index];
+        if (!node || !this.elem) {
+            return false;
+        }
         return this.elem.scrollTop <= node.top - node.stickyTop && this.elem.scrollTop + this.props.height >= node.top + node.height;
     }
 
