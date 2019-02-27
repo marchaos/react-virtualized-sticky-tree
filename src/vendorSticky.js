@@ -1,5 +1,9 @@
 export default () => {
-    if (navigator && /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor)) {
+    if (
+        typeof navigator !== 'undefined'
+        && /Safari/.test(navigator.userAgent)
+        && /Apple Computer/.test(navigator.vendor)
+    ) {
         return '-webkit-sticky';
     }
 
