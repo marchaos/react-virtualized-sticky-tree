@@ -25,7 +25,9 @@ const tree = {
 };
 
 const getChildren = (id) => {
-  return tree[id].children.map(id => ({ id, height: 30 }));
+  if (tree[id].children) {
+    return tree[id].children.map(id => ({ id, height: 30, isSticky: true }));
+  }
 };
 
 const rowRenderer = ({ id, style }) => {
