@@ -751,13 +751,16 @@ export default class StickyTree extends React.PureComponent {
 
     onScroll(e) {
         const { scrollTop, scrollLeft } = e.target;
-        this.setScrollTopAndClosestNode(scrollTop, this.state.currNodePos, scrollTop, SCROLL_REASON.OBSERVED);
 
-        this.setState({ scrollTick: !this.state.scrollTick });
+        const scrollReason = this.state.scrollReason || SCROLL_REASON.OBSERVED;
+
+        this.setScrollTopAndClosestNode(scrollTop, this.state.currNodePos, scrollTop, scrollReason);
 
         if (this.props.onScroll !== undefined) {
-            this.props.onScroll({ scrollTop, scrollLeft, scrollReason: SCROLL_REASON.OBSERVED });
+            this.props.onScroll({ scrollTop, scrollLeft, scrollReason });
         }
+
+        this.setState({ scrollTick: !this.state.scrollTick, scrollReason: undefined });
     }
 
     render() {
