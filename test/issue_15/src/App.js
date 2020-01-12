@@ -1,6 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom";
-import  StickyTree  from "../../src/StickyTree";
+import  {StickyTree} from 'react-virtualized-sticky-tree';
 import "./styles.css";
 import { tree } from "./data";
 
@@ -42,5 +41,4 @@ function App() {
 );
 }
 
-const rootElement = document.getElementById("root");
-ReactDOM.render(<App />, rootElement);
+export default App;
