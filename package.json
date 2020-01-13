@@ -34,10 +34,12 @@
   "bugs": {
     "url": "https://github.com/marchaos/react-virtualized-sticky-tree/issues"
   },
+  "dependencies": {
+    "react-measure": "^2.0.2"
+  },
   "peerDependencies": {
     "prop-types": "^15.6.1",
-    "react": "^16.0.0",
-    "react-measure": "^2.0.2"
+    "react": "^16.0.0"
   },
   "devDependencies": {
     "webpack": "latest",
@@ -59,7 +61,7 @@
     "chai": "^3.5.0",
     "chai-enzyme": "latest",
     "enzyme": "latest",
-    "eslint": "^4.19.1",
+    "eslint": "^6.6.0",
     "eslint-config-airbnb": "latest",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^5.0.0",

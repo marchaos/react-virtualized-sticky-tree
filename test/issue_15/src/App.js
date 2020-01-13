@@ -3,8 +3,6 @@ import  {StickyTree} from 'react-virtualized-sticky-tree';
 import "./styles.css";
 import { tree } from "./data";
 
-console.info('yo')
-
 const getChildren = id => {
     if (tree[id].children) {
         return tree[id].children.map(id => ({ id, height: 30, isSticky: true }));
