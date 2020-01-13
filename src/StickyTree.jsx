@@ -237,7 +237,7 @@ export default class StickyTree extends React.PureComponent {
         return arr;
     }
 
-    componentWillMount() {
+    UNSAFE_componentWillMount() {
         this.refreshCachedMetadata(this.props);
         this.storeRenderTree(this.props, this.state);
     }
@@ -249,7 +249,7 @@ export default class StickyTree extends React.PureComponent {
 
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         // These two properties will change when the structure changes, so we need to re-build the tree when this happens.
         if (this.treeDataUpdated(newProps)) {
             this.refreshCachedMetadata(newProps);
@@ -260,7 +260,7 @@ export default class StickyTree extends React.PureComponent {
         }
     }
 
-    componentWillUpdate(newProps, newState) {
+    UNSAFE_componentWillUpdate(newProps, newState) {
         if (newState.scrollTick === this.state.scrollTick || newState.currNodePos !== this.state.currNodePos) {
             this.storeRenderTree(newProps, newState);
         }
@@ -735,6 +735,19 @@ export default class StickyTree extends React.PureComponent {
      * Sets the scroll top in state and finds and sets the closest node to that scroll top.
      */
     setScrollTopAndClosestNode(scrollTop, currNodePos, scrollReason) {
+        if (scrollTop === this.state.scrollTop) {
+            return;
+        }
+
+        // If we are scrolled to the bottom, no need to do any more work.
+        if (this.elem.scrollTop >= (this.elem.scrollHeight - this.elem.offsetHeight)) {
+            return;
+        }
+
+        if (scrollTop >= (this.elem.scrollHeight - this.elem.offsetHeight)) {
+            scrollTop = this.elem.scrollHeight - this.elem.offsetHeight;
+        }
+
         let pos;
         if (scrollTop > this.state.scrollTop || currNodePos === 0) {
             pos = this.forwardSearch(scrollTop, currNodePos);
