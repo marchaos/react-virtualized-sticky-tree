@@ -742,11 +742,6 @@ export default class StickyTree extends React.PureComponent {
             return;
         }
 
-        // If we are scrolled to the bottom, no need to do any more work.
-        if (this.elem.scrollTop >= (this.elem.scrollHeight - this.elem.offsetHeight)) {
-            return;
-        }
-
         if (scrollTop >= (this.elem.scrollHeight - this.elem.offsetHeight)) {
             scrollTop = this.elem.scrollHeight - this.elem.offsetHeight;
         }
