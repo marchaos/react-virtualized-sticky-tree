@@ -723,6 +723,9 @@ export default class StickyTree extends React.PureComponent {
      */
     backwardSearch(scrollTop, searchPos) {
         const nodes = this.nodes;
+        if (searchPos > this.nodes.length) {
+            return 0;
+        }
         for (let i = searchPos; i >= 0; i--) {
             if (nodes[i].top <= scrollTop) {
                 return i;
