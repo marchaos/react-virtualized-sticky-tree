@@ -27,7 +27,7 @@
     "clean:commonjs": "rimraf dist/commonjs",
     "clean:es": "rimraf dist/es",
     "test": "mocha \"test/**/*spec.js*\" --compilers js:babel-register --reporter=dot",
-    "prepare": ""
+    "prepare": "npm run build"
   },
   "files": [
     "dist"
