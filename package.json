@@ -26,7 +26,8 @@
     "prepublish": "npm run build",
     "clean:commonjs": "rimraf dist/commonjs",
     "clean:es": "rimraf dist/es",
-    "test": "mocha \"test/**/*spec.js*\" --compilers js:babel-register --reporter=dot"
+    "test": "mocha \"test/**/*spec.js*\" --compilers js:babel-register --reporter=dot",
+    "prepare": "npm run build"
   },
   "files": [
     "dist"
