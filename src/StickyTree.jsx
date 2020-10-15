@@ -747,12 +747,12 @@ export default class StickyTree extends React.PureComponent {
         if (scrollTop > this.state.scrollTop || currNodePos === 0) {
             pos = this.forwardSearch(scrollTop, currNodePos);
         }
-        if (scrollTop < this.state.scrollTop || pos === undefined) {
+        if (scrollTop < this.state.scrollTop && pos === undefined) {
             pos = this.backwardSearch(scrollTop, currNodePos);
         }
 
         this.pendingScrollTop = scrollTop;
-        this.setState({ currNodePos: pos, scrollTop, scrollReason }, () => {
+        this.setState({ currNodePos: pos ? pos : 0, scrollTop, scrollReason }, () => {
             this.pendingScrollTop = undefined;
         });
     }
