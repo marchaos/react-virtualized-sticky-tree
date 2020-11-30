@@ -223,7 +223,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      *    ...
      *  ]
      */
-    flattenTree(
+    private flattenTree(
         node: TNodeType,
         props = this.props,
         nodes: StickyTreeNodeInfo[] = [],
@@ -303,7 +303,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return nodes;
     }
 
-    getBranchChildrenIds(children: TNodeType[], arr: NodeId[] = []) {
+    private getBranchChildrenIds(children: TNodeType[], arr: NodeId[] = []) {
         if (!children) {
             return arr;
         }
@@ -319,7 +319,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         this.storeRenderTree(this.props, this.state);
     }
 
-    treeDataUpdated(newProps: StickyTreeProps<TNodeType>) {
+    private treeDataUpdated(newProps: StickyTreeProps<TNodeType>) {
         return (
             newProps.root !== this.props.root ||
             newProps.getChildren !== this.props.getChildren ||
@@ -587,7 +587,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         }
     }
 
-    refreshCachedMetadata(props: StickyTreeProps<TNodeType>) {
+    private refreshCachedMetadata(props: StickyTreeProps<TNodeType>) {
         this.structureChanged = false;
         this.nodes = this.flattenTree(props.root, props);
 
@@ -608,7 +608,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         }
     }
 
-    storeRenderTree(props: StickyTreeProps<TNodeType>, state: StickyTreeState) {
+    private storeRenderTree(props: StickyTreeProps<TNodeType>, state: StickyTreeState) {
         this.treeToRender = this.renderParentTree(props, state);
     }
 
@@ -619,7 +619,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         super.forceUpdate();
     }
 
-    renderParentTree(props: StickyTreeProps<TNodeType>, state: StickyTreeState) {
+    private renderParentTree(props: StickyTreeProps<TNodeType>, state: StickyTreeState) {
         this.rowRenderRange = this.getRenderRowRange(props, state);
         const path = this.getParentPath(this.rowRenderRange.start);
 
@@ -644,7 +644,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return this.renderParentContainer(props, state, this.nodes[0] as StickyTreeParentNodeInfo, indexesToRender);
     }
 
-    renderParentContainer(
+    private renderParentContainer(
         props: StickyTreeProps<TNodeType>,
         state: StickyTreeState,
         parent: StickyTreeParentNodeInfo,
@@ -660,11 +660,11 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         );
     }
 
-    getChildContainerStyle(child: StickyTreeNodeInfo, top: number): React.CSSProperties {
+    private getChildContainerStyle(child: StickyTreeNodeInfo, top: number): React.CSSProperties {
         return { position: 'absolute', top: top, height: child.totalHeight, width: '100%' };
     }
 
-    renderChildWithChildren(
+    private renderChildWithChildren(
         props: StickyTreeProps<TNodeType>,
         state: StickyTreeState,
         child: StickyTreeNodeInfo,
@@ -679,7 +679,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         );
     }
 
-    getClientNodeStyle(node: StickyTreeNodeInfo): React.CSSProperties {
+    private getClientNodeStyle(node: StickyTreeNodeInfo): React.CSSProperties {
         const style: React.CSSProperties = { height: node.height };
         if (node.isSticky) {
             style.position = vendorSticky();
@@ -690,7 +690,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return style;
     }
 
-    getClientLeafNodeStyle(node: StickyTreeNodeInfo, top: number): React.CSSProperties {
+    private getClientLeafNodeStyle(node: StickyTreeNodeInfo, top: number): React.CSSProperties {
         return {
             position: 'absolute',
             top,
@@ -699,7 +699,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         };
     }
 
-    renderChildren(
+    private renderChildren(
         props: StickyTreeProps<TNodeType>,
         state: StickyTreeState,
         parent: StickyTreeParentNodeInfo,
@@ -738,7 +738,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return nodes;
     }
 
-    renderNode(props: StickyTreeProps<TNodeType>, state: StickyTreeState, nodeInfo: StickyTreeNodeInfo, style: React.CSSProperties) {
+    private renderNode(props: StickyTreeProps<TNodeType>, state: StickyTreeState, nodeInfo: StickyTreeNodeInfo, style: React.CSSProperties) {
         // If they have not mutated their getChildren, then no need to call them again for the same structure.
         if (props.isModelImmutable && this.rowRenderCache[nodeInfo.id]) {
             return this.rowRenderCache[nodeInfo.id];
@@ -757,7 +757,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      * Determines the start and end number of the range to be rendered.
      * @returns {{start: number, end: number}} Indexes within nodes
      */
-    getRenderRowRange(props: StickyTreeProps<TNodeType>, state: StickyTreeState) {
+    private getRenderRowRange(props: StickyTreeProps<TNodeType>, state: StickyTreeState) {
         // Needs to be at least 1
         let overscanRowCount = props.overscanRowCount > 0 ? props.overscanRowCount : 1;
         let start = state.currNodePos - overscanRowCount;
@@ -784,7 +784,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      * @param topDownOrder if true, the array with index 0 will be the root node, otherwise 0 will be the immediate parent.
      * @returns {Array<Node>}
      */
-    getParentPath(nodeIndex: number, topDownOrder = true) {
+    private getParentPath(nodeIndex: number, topDownOrder = true) {
         let currNode = this.nodes[nodeIndex];
         const path = [];
         while (currNode) {
@@ -803,7 +803,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      * @param searchPos
      * @returns {number}
      */
-    forwardSearch(scrollTop: number, searchPos: number) {
+    private forwardSearch(scrollTop: number, searchPos: number) {
         const nodes = this.nodes;
         for (let i = searchPos; i < nodes.length; i++) {
             if (nodes[i].top >= scrollTop) {
@@ -820,7 +820,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      * @param searchPos
      * @returns {number}
      */
-    backwardSearch(scrollTop: number, searchPos: number) {
+    private backwardSearch(scrollTop: number, searchPos: number) {
         const nodes = this.nodes;
         for (let i = Math.min(searchPos, Math.max(nodes.length - 1, 0)); i >= 0; i--) {
             if (nodes[i].top <= scrollTop) {
@@ -833,7 +833,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
     /**
      * Sets the scroll top in state and finds and sets the closest node to that scroll top.
      */
-    setScrollTopAndClosestNode(scrollTop: number, currNodePos: number, scrollReason: ScrollReason) {
+    private setScrollTopAndClosestNode(scrollTop: number, currNodePos: number, scrollReason: ScrollReason) {
         if (scrollTop === this.state.scrollTop) {
             return;
         }
@@ -856,7 +856,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         });
     }
 
-    onScroll(e: React.UIEvent<HTMLElement>) {
+    private onScroll(e: React.UIEvent<HTMLElement>) {
         const { scrollTop, scrollLeft } = e.currentTarget;
 
         const scrollReason = this.state.scrollReason || ScrollReason.OBSERVED;

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 
-import { StickyTree } from '../src/index';
+import { StickyTree } from '../src';
 
 describe('StickyTree test', () => {
     let tree;

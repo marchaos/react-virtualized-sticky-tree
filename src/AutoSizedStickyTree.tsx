@@ -1,19 +1,34 @@
 import React from 'react';
-import Measure from 'react-measure';
-import StickyTree from './StickyTree';
+import Measure, { ContentRect } from 'react-measure';
+import StickyTree, { StickyTreeNode, StickyTreeProps } from './StickyTree';
 
-export default class AutoSizedStickyTree extends React.PureComponent {
-    constructor(props) {
+export interface AutoSizedStickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNode>
+    extends Omit<StickyTreeProps<TNodeType>, 'width' | 'height'> {
+    onResize?: (rect: ContentRect) => void;
+    treeRef?: React.Ref<StickyTree>;
+    className?: string;
+}
+
+export interface AutoSizedStickyTreeState {
+    width: number;
+    height: number;
+}
+
+export default class AutoSizedStickyTree<TNodeType extends StickyTreeNode = StickyTreeNode> extends React.PureComponent<
+    AutoSizedStickyTreeProps,
+    AutoSizedStickyTreeState
+> {
+    constructor(props: AutoSizedStickyTreeProps<TNodeType>) {
         super(props);
-        this.state = {};
+        this.state = {} as AutoSizedStickyTreeState;
     }
 
     render() {
         return (
             <Measure
                 bounds={true}
-                onResize={rect => {
-                    this.setState({ width: rect.bounds.width, height: rect.bounds.height });
+                onResize={(rect) => {
+                    this.setState({ width: rect.bounds!.width, height: rect.bounds!.height });
                     if (this.props.onResize !== undefined) {
                         this.props.onResize(rect);
                     }
