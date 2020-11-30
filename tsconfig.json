@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",
     "target": "es2017",
     "module": "commonjs",
     "declaration": true,
@@ -8,6 +9,7 @@
     "lib": ["es2017", "dom", "esnext"],
     "strict": true,
     "noImplicitAny": true,
+    "skipLibCheck": true, // no node_modules checks
     "strictNullChecks": true,
     "alwaysStrict": true,
     "allowSyntheticDefaultImports": true,
@@ -16,8 +18,5 @@
     "strictPropertyInitialization": false,
     "resolveJsonModule": true
   },
-  "include": ["src/", "example/"],
-  "exclude": [
-    "node_modules/"
-  ]
+  "include": ["src/", "example/"]
 }

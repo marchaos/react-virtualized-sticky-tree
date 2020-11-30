@@ -1,4 +1,4 @@
-import React, {createRef} from 'react';
+import React, { createRef } from 'react';
 import vendorSticky from './vendorSticky';
 
 export enum ScrollReason {
@@ -15,13 +15,13 @@ export type NodeId = string | number;
 
 export interface StickyTreeNode {
     id: NodeId;
-    isSticky: boolean;
-    stickyTop: number;
-    zIndex: number;
     height: number;
+    isSticky?: boolean;
+    stickyTop?: number;
+    zIndex?: number;
 }
 
-export interface StickyTreeLeafNodeInfo extends StickyTreeNode {
+export interface StickyTreeLeafNodeInfo extends Required<StickyTreeNode> {
     top: number;
     depth: number;
     index: number;
@@ -58,7 +58,7 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
      *    }))
      * }
      */
-    getChildren: (id: NodeId, nodeInfo: StickyTreeLeafNodeInfo) => TNodeType[];
+    getChildren: (id: NodeId, nodeInfo: StickyTreeNodeInfo) => TNodeType[] | undefined;
 
     /**
      * Called to retrieve a row to render. The function should return a single React node.
@@ -87,7 +87,7 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
     /**
      * Lets StickyTree know how many rows above and below the visible area should be rendered, to improve performance.
      */
-    overscanRowCount: number;
+    overscanRowCount?: number;
 
     /**
      * The height of the outer container.
@@ -150,7 +150,11 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
      */
     isModelImmutable?: boolean;
 
-    apiRef: (tree: StickyTree) => void;
+    /**
+     * Returns a reference to the tree so the API can be used on the tree.
+     * @param tree
+     */
+    apiRef?: (tree: StickyTree) => void;
 }
 
 export interface StickyTreeState {
@@ -179,7 +183,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         isModelImmutable: false,
     };
     private nodes: StickyTreeNodeInfo[];
-    private getChildrenCache: Record<NodeId, TNodeType[]>;
+    private getChildrenCache: Record<NodeId, TNodeType[] | undefined>;
     private rowRenderCache: Record<NodeId, React.ReactElement>;
     private rowRenderRange?: RowRenderRange;
     private structureChanged: boolean;
@@ -276,9 +280,9 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
 
                 // Check for structure changes...
                 if (
-                    children &&
                     oldChildren &&
-                    (children.length !== oldChildren.length || !children.every((child, i) => child.id === oldChildren[i].id))
+                    children &&
+                    (children.length !== oldChildren.length || !children.every((child, i) => child.id === oldChildren![i].id))
                 ) {
                     this.structureChanged = true;
                     // We need to update the entire branch if the structure has changed.
@@ -303,7 +307,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return nodes;
     }
 
-    private getBranchChildrenIds(children: TNodeType[], arr: NodeId[] = []) {
+    private getBranchChildrenIds(children: TNodeType[] | undefined, arr: NodeId[] = []) {
         if (!children) {
             return arr;
         }
@@ -738,7 +742,12 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return nodes;
     }
 
-    private renderNode(props: StickyTreeProps<TNodeType>, state: StickyTreeState, nodeInfo: StickyTreeNodeInfo, style: React.CSSProperties) {
+    private renderNode(
+        props: StickyTreeProps<TNodeType>,
+        state: StickyTreeState,
+        nodeInfo: StickyTreeNodeInfo,
+        style: React.CSSProperties
+    ) {
         // If they have not mutated their getChildren, then no need to call them again for the same structure.
         if (props.isModelImmutable && this.rowRenderCache[nodeInfo.id]) {
             return this.rowRenderCache[nodeInfo.id];
@@ -759,8 +768,8 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      */
     private getRenderRowRange(props: StickyTreeProps<TNodeType>, state: StickyTreeState) {
         // Needs to be at least 1
-        let overscanRowCount = props.overscanRowCount > 0 ? props.overscanRowCount : 1;
-        let start = state.currNodePos - overscanRowCount;
+        let overscanRowCount = props.overscanRowCount! > 0 ? props.overscanRowCount : 1;
+        let start = state.currNodePos - overscanRowCount!;
         if (start < 0) {
             start = 0;
         }
@@ -770,7 +779,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
             visibleEnd++;
         }
 
-        let end = visibleEnd + overscanRowCount;
+        let end = visibleEnd + overscanRowCount!;
         if (end > this.nodes.length - 1) {
             end = this.nodes.length - 1;
         }

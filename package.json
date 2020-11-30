@@ -24,7 +24,7 @@
     "start": "webpack serve --config ./webpack.config.js",
     "prepublish": "npm run build",
     "clean": "rimraf lib",
-    "test": "mocha \"test/**/*spec.js*\" --compilers js:babel-register --reporter=dot",
+    "test": "npx cypress run\"",
     "prepare": "npm run build"
   },
   "files": [
@@ -45,6 +45,7 @@
     "@babel/preset-react": "^7.12.7",
     "@babel/preset-typescript": "^7.12.7",
     "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
     "@types/react-measure": "^2.0.6",
     "babel-loader": "^8.2.1",
     "chai": "^3.5.0",
