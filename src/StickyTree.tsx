@@ -15,7 +15,7 @@ export type NodeId = string | number;
 
 export interface StickyTreeNode {
     id: NodeId;
-    height: number;
+    height?: number;
     isSticky?: boolean;
     stickyTop?: number;
     zIndex?: number;
@@ -137,7 +137,7 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
     /**
      * Specifies the default row height which will be used if the child or root object do not have a height specified.
      */
-    defaultRowHeight?: number;
+    rowHeight?: number;
 
     /**
      * If true, all leaf nodes will be wrapped with a div, even when they are not sticky. this may help with certain tree structures where you need a constant key
@@ -237,7 +237,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         context = { totalHeight: 0 }
     ) {
         const index = nodes.length;
-        const height = node.height !== undefined ? node.height : props.defaultRowHeight!;
+        const height = node.height !== undefined ? node.height : props.rowHeight!;
 
         const parentInfo = parentIndex !== undefined ? (nodes[parentIndex] as StickyTreeParentNodeInfo) : undefined;
 
@@ -327,7 +327,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return (
             newProps.root !== this.props.root ||
             newProps.getChildren !== this.props.getChildren ||
-            newProps.defaultRowHeight !== this.props.defaultRowHeight
+            newProps.rowHeight !== this.props.rowHeight
         );
     }
 

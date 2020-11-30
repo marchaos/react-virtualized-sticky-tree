@@ -11,7 +11,7 @@ const CountriesTree: React.FC<{}> = () => {
         style = { ...style, backgroundColor: backgroundColors[node.depth] };
 
         return (
-            <div className="my-sticky-row" style={style}>
+            <div className="node-row" style={style}>
                 {node.name}
             </div>
         );
@@ -21,7 +21,6 @@ const CountriesTree: React.FC<{}> = () => {
         if (countries[id].children) {
             return countries[id].children?.map((childId) => ({
                 id: childId,
-                height: 30,
                 isSticky: !!countries[childId].children,
                 stickyTop: 30 * countries[childId].depth,
                 zIndex: 4 - countries[childId].depth,
@@ -32,8 +31,9 @@ const CountriesTree: React.FC<{}> = () => {
     return (
         <AutoSizedStickyTree
             className="sticky-tree-wrapper"
-            root={{ id: 0, height: 30, isSticky: true, stickyTop: 0, zIndex: 4 }}
+            root={{ id: 0, isSticky: true, stickyTop: 0, zIndex: 4 }}
             renderRoot={true}
+            rowHeight={30}
             rowRenderer={rowRenderer}
             getChildren={getChildren}
             overscanRowCount={20}

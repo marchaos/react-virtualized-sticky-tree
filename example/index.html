@@ -8,20 +8,16 @@
         font-family: 'Roboto', sans-serif;
         margin: 0;
         padding: 0;
+		box-sizing: border-box;
     }
 
-    #app {
-        display: flex;
-        height: 100vh;
-        width: 100vw;
-    }
-
-    .my-sticky-row {
+    .node-row {
         color: #FFF;
         line-height: 30px;
         padding-left: 10px;
 		box-sizing: border-box;
 		height: 30px;
+		width: calc(100vw - 30px) !important;
     }
 
     .rv-sticky-node-list {
@@ -30,12 +26,9 @@
     }
 
     .sticky-tree-wrapper {
-        display: flex;
+		box-sizing: border-box;
         height: 100vh;
-        width: 100vw;
-        box-sizing: border-box;
-
-    }
+	}
 	</style>
 	<title>React Virtualized Sticky Tree Example</title>
 </head>
