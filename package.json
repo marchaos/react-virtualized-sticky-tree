@@ -4,8 +4,8 @@
   "version": "3.0.0",
   "author": "Marc McIntyre <marchaos@gmail.com>",
   "license": "MIT",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "lib/src/index.js",
+  "types": "lib/src/index.d.ts",
   "homepage": "https://github.com/marchaos/react-virtualized-sticky-tree#readme",
   "repository": {
     "type": "git",
