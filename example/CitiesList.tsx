@@ -16,7 +16,7 @@ const CitiesList: React.FC = () => {
         style = { ...style, backgroundColor: '#87ceeb' };
 
         return (
-            <div className="node-row" style={style}>
+            <div className="node-row" style={style} key={node.id}>
                 {node.name}
             </div>
         );

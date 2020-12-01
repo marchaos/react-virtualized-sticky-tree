@@ -21,7 +21,7 @@ const CountriesTree: React.FC<{}> = () => {
         style = { ...style, backgroundColor: backgroundColors[node.depth] };
 
         return (
-            <div className="node-row" style={style}>
+            <div className="node-row" style={style} key={node.id}>
                 {node.name}
             </div>
         );
