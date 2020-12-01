@@ -1,46 +1,38 @@
-import React, { useCallback } from 'react';
-import StickyTree, { NodeId, StickyTreeProps } from './StickyTree';
-
-export interface StickListNode {
-    id: NodeId;
-    height?: number;
-}
+import React from 'react';
+import StickyTree, { StickyTreeNode, StickyTreeProps, TreeNode } from './StickyTree';
 
 type OmitProps = 'getChildren' | 'root' | 'renderRoot';
 
-export interface StickyListProps<TNodeType extends StickListNode = StickListNode> extends Omit<StickyTreeProps, OmitProps> {
+export interface StickyListProps<TNodeType extends TreeNode = TreeNode> extends Omit<StickyTreeProps<TNodeType>, OmitProps> {
     items: TNodeType[];
-    treeRef?: React.Ref<StickyTree>;
+    getHeight?: (item: TNodeType) => number;
+    treeRef?: React.Ref<StickyTree<TNodeType>>;
 }
 
-export const StickyList = <TNodeType extends StickListNode = StickListNode>({
-    items,
-    rowRenderer,
-    width,
-    height,
-    treeRef,
-    ...rest
-}: StickyListProps<TNodeType>): React.ReactElement<StickyListProps<TNodeType>> => {
-    const getChildren = useCallback(
-        (id: NodeId) => {
-            if (id === 'root') {
-                return items;
-            }
-            return undefined;
-        },
-        [items]
-    );
+export default class StickyList<TNodeType extends TreeNode = TreeNode> extends React.PureComponent<StickyListProps<TNodeType>> {
+    getChildren: StickyTreeProps<TNodeType>['getChildren'] = (node) => {
+        const { items, getHeight } = this.props;
+        if (node.id === 'root') {
+            // If they don't specify a getHeight function, they must be using the rowHeight prop.
+            return items.map((item) => ({ node: item, height: getHeight ? getHeight(item) : undefined }));
+        }
+        return undefined;
+    };
 
-    return (
-        <StickyTree
-            ref={treeRef}
-            getChildren={getChildren}
-            renderRoot={false}
-            root={{ id: 'root' } as TNodeType}
-            rowRenderer={rowRenderer}
-            width={width}
-            height={height}
-            {...rest}
-        />
-    );
-};
+    render() {
+        const { items, rowRenderer, width, height, treeRef, getHeight, ...rest } = this.props;
+
+        return (
+            <StickyTree<TNodeType>
+                ref={treeRef}
+                getChildren={this.getChildren}
+                renderRoot={false}
+                root={{ node: { id: 'root' } } as StickyTreeNode<TNodeType>}
+                rowRenderer={rowRenderer}
+                width={width}
+                height={height}
+                {...rest}
+            />
+        );
+    }
+}

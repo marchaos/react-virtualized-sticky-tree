@@ -13,15 +13,20 @@ export const SCROLL_REASON = ScrollReason;
 
 export type NodeId = string | number;
 
-export interface StickyTreeNode {
+export interface TreeNode {
     id: NodeId;
+}
+
+export interface StickyTreeNode<TNodeType extends TreeNode = TreeNode> {
     height?: number;
     isSticky?: boolean;
     stickyTop?: number;
     zIndex?: number;
+    node: TNodeType;
 }
 
-export interface StickyTreeLeafNodeInfo extends Required<StickyTreeNode> {
+export interface EnhancedStickyTreeLeafNode<TNodeType extends TreeNode = TreeNode> extends Required<StickyTreeNode<TNodeType>> {
+    id: NodeId;
     top: number;
     depth: number;
     index: number;
@@ -30,15 +35,15 @@ export interface StickyTreeLeafNodeInfo extends Required<StickyTreeNode> {
     totalHeight: number;
 }
 
-export interface StickyTreeParentNodeInfo extends StickyTreeLeafNodeInfo {
-    parentInfo: StickyTreeLeafNodeInfo;
+export interface EnhancedStickyTreeParentNode<TNodeType extends TreeNode = TreeNode> extends EnhancedStickyTreeLeafNode<TNodeType> {
+    parentInfo: EnhancedStickyTreeLeafNode<TNodeType>;
     parentIndex: number;
     children: number[];
 }
 
-export type StickyTreeNodeInfo = StickyTreeLeafNodeInfo | StickyTreeParentNodeInfo;
+export type EnhancedStickyTreeNode<TNodeType extends TreeNode = TreeNode> = EnhancedStickyTreeLeafNode<TNodeType> | EnhancedStickyTreeParentNode<TNodeType>;
 
-export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNode> {
+export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode> {
     /**
      * Returns an array of child objects that represent the children of a particular node.
      * The returned object for each child should be in the form:
@@ -58,7 +63,7 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
      *    }))
      * }
      */
-    getChildren: (id: NodeId, nodeInfo: StickyTreeNodeInfo) => TNodeType[] | undefined;
+    getChildren: (node: TNodeType, nodeInfo: EnhancedStickyTreeNode<TNodeType>) => StickyTreeNode<TNodeType>[] | undefined;
 
     /**
      * Called to retrieve a row to render. The function should return a single React node.
@@ -70,7 +75,7 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
      *
      * The id is the id from either the root property passed to the tree, or one returned in the getChildren call.
      */
-    rowRenderer: (renderInfo: { id: NodeId; nodeInfo: StickyTreeNodeInfo; style: React.CSSProperties }) => React.ReactElement;
+    rowRenderer: (renderInfo: { node: TNodeType; nodeInfo: EnhancedStickyTreeNode<TNodeType>; style: React.CSSProperties }) => React.ReactElement;
 
     /**
      * An object which represents the root node in the form:
@@ -82,7 +87,7 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
      *
      * This will be the first node passed to rowRenderer({id: myRootNodeId, ...}). Your id might be an index in an array or map lookup.
      */
-    root: TNodeType;
+    root: StickyTreeNode<TNodeType>;
 
     /**
      * Lets StickyTree know how many rows above and below the visible area should be rendered, to improve performance.
@@ -129,9 +134,9 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
         overscanStopIndex: number;
         startIndex: number;
         stopIndex: number;
-        startNode?: NodeId;
-        endNode?: NodeId;
-        nodes: StickyTreeNodeInfo[];
+        startNode?:  EnhancedStickyTreeNode<TNodeType>;
+        endNode?:  EnhancedStickyTreeNode<TNodeType>;
+        nodes: EnhancedStickyTreeNode<TNodeType>[];
     }) => void;
 
     /**
@@ -154,7 +159,7 @@ export interface StickyTreeProps<TNodeType extends StickyTreeNode = StickyTreeNo
      * Returns a reference to the tree so the API can be used on the tree.
      * @param tree
      */
-    apiRef?: (tree: StickyTree) => void;
+    apiRef?: (tree: StickyTree<TNodeType>) => void;
 }
 
 export interface StickyTreeState {
@@ -172,7 +177,7 @@ export interface RowRenderRange {
     visibleEnd: number;
 }
 
-export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNode> extends React.PureComponent<
+export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends React.PureComponent<
     StickyTreeProps<TNodeType>,
     StickyTreeState
 > {
@@ -182,8 +187,8 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         wrapAllLeafNodes: false,
         isModelImmutable: false,
     };
-    private nodes: StickyTreeNodeInfo[];
-    private getChildrenCache: Record<NodeId, TNodeType[] | undefined>;
+    private nodes: EnhancedStickyTreeNode<TNodeType>[];
+    private getChildrenCache: Record<NodeId, StickyTreeNode<TNodeType>[] | undefined>;
     private rowRenderCache: Record<NodeId, React.ReactElement>;
     private rowRenderRange?: RowRenderRange;
     private structureChanged: boolean;
@@ -228,31 +233,30 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      *  ]
      */
     private flattenTree(
-        node: TNodeType,
+        stickyNode: StickyTreeNode<TNodeType>,
         props = this.props,
-        nodes: StickyTreeNodeInfo[] = [],
+        nodes: EnhancedStickyTreeNode<TNodeType>[] = [],
         isFirstChild = false,
         isLastChild = false,
         parentIndex: number | undefined = undefined,
         context = { totalHeight: 0 }
     ) {
         const index = nodes.length;
-        const height = node.height !== undefined ? node.height : props.rowHeight!;
+        const height = stickyNode.height !== undefined ? stickyNode.height : props.rowHeight!;
+        const enhancedParentStickyNode = parentIndex !== undefined ? (nodes[parentIndex] as EnhancedStickyTreeParentNode<TNodeType>) : undefined;
 
-        const parentInfo = parentIndex !== undefined ? (nodes[parentIndex] as StickyTreeParentNodeInfo) : undefined;
+        const { isSticky = false, stickyTop = 0, zIndex = 0, node } = stickyNode;
 
-        const { id, isSticky = false, stickyTop = 0, zIndex = 0, ...rest } = node;
-
-        const nodeInfo: StickyTreeNodeInfo = {
-            id,
+        const enhancedStickyNode: EnhancedStickyTreeNode<TNodeType> = {
+            id: node.id,
             isSticky,
             stickyTop,
             zIndex,
-            ...rest,
+            node,
             top: context.totalHeight,
             parentIndex,
-            parentInfo: parentInfo,
-            depth: parentInfo !== undefined ? parentInfo.depth + 1 : 0,
+            parentInfo: enhancedParentStickyNode,
+            depth: enhancedParentStickyNode !== undefined ? enhancedParentStickyNode.depth + 1 : 0,
             height,
             index,
             isFirstChild,
@@ -260,29 +264,29 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
             totalHeight: 0,
         };
 
-        nodes.push(nodeInfo);
+        nodes.push(enhancedStickyNode);
 
-        if (parentInfo !== undefined) {
-            parentInfo.children.push(index);
+        if (enhancedParentStickyNode !== undefined) {
+            enhancedParentStickyNode.children.push(index);
         }
 
         context.totalHeight += height;
 
-        const children = props.getChildren(node.id, nodeInfo);
+        const children = props.getChildren(stickyNode.node, enhancedStickyNode);
 
         if (props.isModelImmutable) {
             // If children is undefined, then it is probably a leaf node, so we will have to render this since we don't know if the node
             // itself has changed.
-            let oldChildren = this.getChildrenCache[node.id];
+            let oldChildren = this.getChildrenCache[enhancedStickyNode.id];
             if (children === undefined || oldChildren !== children) {
-                delete this.rowRenderCache[node.id];
-                this.getChildrenCache[node.id] = children;
+                delete this.rowRenderCache[enhancedStickyNode.id];
+                this.getChildrenCache[enhancedStickyNode.id] = children;
 
                 // Check for structure changes...
                 if (
                     oldChildren &&
                     children &&
-                    (children.length !== oldChildren.length || !children.every((child, i) => child.id === oldChildren![i].id))
+                    (children.length !== oldChildren.length || !children.every((child, i) => child.node.id === oldChildren![i].node.id))
                 ) {
                     this.structureChanged = true;
                     // We need to update the entire branch if the structure has changed.
@@ -294,7 +298,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         }
 
         if (Array.isArray(children)) {
-            (nodeInfo as StickyTreeParentNodeInfo).children = [];
+            (enhancedStickyNode as EnhancedStickyTreeParentNode<TNodeType>).children = [];
             for (let i = 0; i < children.length; i++) {
                 // Need to reset parentIndex here as we are recursive.
                 const child = children[i];
@@ -302,18 +306,18 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
             }
         }
 
-        nodeInfo.totalHeight = context.totalHeight - nodeInfo.top;
+        enhancedStickyNode.totalHeight = context.totalHeight - enhancedStickyNode.top;
 
         return nodes;
     }
 
-    private getBranchChildrenIds(children: TNodeType[] | undefined, arr: NodeId[] = []) {
+    private getBranchChildrenIds(children: StickyTreeNode<TNodeType>[] | undefined, arr: NodeId[] = []) {
         if (!children) {
             return arr;
         }
         children.forEach((child) => {
-            arr.push(child.id);
-            this.getBranchChildrenIds(this.getChildrenCache[child.id], arr);
+            arr.push(child.node.id);
+            this.getBranchChildrenIds(this.getChildrenCache[child.node.id], arr);
         });
         return arr;
     }
@@ -584,8 +588,8 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
                 overscanStopIndex: range.end,
                 startIndex: range.visibleStart,
                 stopIndex: range.visibleEnd,
-                startNode: visibleStartInfo && visibleStartInfo.id,
-                endNode: visibleEndInfo && visibleEndInfo.id,
+                startNode: visibleStartInfo && visibleStartInfo,
+                endNode: visibleEndInfo && visibleEndInfo,
                 nodes: this.nodes,
             });
         }
@@ -645,13 +649,13 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
                 </div>
             );
         }
-        return this.renderParentContainer(props, state, this.nodes[0] as StickyTreeParentNodeInfo, indexesToRender);
+        return this.renderParentContainer(props, state, this.nodes[0] as EnhancedStickyTreeParentNode<TNodeType>, indexesToRender);
     }
 
     private renderParentContainer(
         props: StickyTreeProps<TNodeType>,
         state: StickyTreeState,
-        parent: StickyTreeParentNodeInfo,
+        parent: EnhancedStickyTreeParentNode<TNodeType>,
         indexesToRender: Set<NodeId>
     ) {
         return (
@@ -664,26 +668,26 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         );
     }
 
-    private getChildContainerStyle(child: StickyTreeNodeInfo, top: number): React.CSSProperties {
+    private getChildContainerStyle(child: EnhancedStickyTreeNode<TNodeType>, top: number): React.CSSProperties {
         return { position: 'absolute', top: top, height: child.totalHeight, width: '100%' };
     }
 
     private renderChildWithChildren(
         props: StickyTreeProps<TNodeType>,
         state: StickyTreeState,
-        child: StickyTreeNodeInfo,
+        child: EnhancedStickyTreeNode<TNodeType>,
         top: number,
         indexesToRender: Set<NodeId>
     ) {
         return (
             <div key={`rv-node-${child.id}`} className="rv-sticky-parent-node" style={this.getChildContainerStyle(child, top)}>
                 {this.renderNode(props, state, child, this.getClientNodeStyle(child))}
-                {this.renderParentContainer(props, state, child as StickyTreeParentNodeInfo, indexesToRender)}
+                {this.renderParentContainer(props, state, child as EnhancedStickyTreeParentNode<TNodeType>, indexesToRender)}
             </div>
         );
     }
 
-    private getClientNodeStyle(node: StickyTreeNodeInfo): React.CSSProperties {
+    private getClientNodeStyle(node: EnhancedStickyTreeNode<TNodeType>): React.CSSProperties {
         const style: React.CSSProperties = { height: node.height };
         if (node.isSticky) {
             style.position = vendorSticky();
@@ -694,7 +698,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
         return style;
     }
 
-    private getClientLeafNodeStyle(node: StickyTreeNodeInfo, top: number): React.CSSProperties {
+    private getClientLeafNodeStyle(node: EnhancedStickyTreeNode<TNodeType>, top: number): React.CSSProperties {
         return {
             position: 'absolute',
             top,
@@ -706,7 +710,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
     private renderChildren(
         props: StickyTreeProps<TNodeType>,
         state: StickyTreeState,
-        parent: StickyTreeParentNodeInfo,
+        parent: EnhancedStickyTreeParentNode<TNodeType>,
         indexesToRender: Set<NodeId>
     ) {
         const nodes: React.ReactElement[] = [];
@@ -745,7 +749,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
     private renderNode(
         props: StickyTreeProps<TNodeType>,
         state: StickyTreeState,
-        nodeInfo: StickyTreeNodeInfo,
+        nodeInfo: EnhancedStickyTreeNode<TNodeType>,
         style: React.CSSProperties
     ) {
         // If they have not mutated their getChildren, then no need to call them again for the same structure.
@@ -753,7 +757,7 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
             return this.rowRenderCache[nodeInfo.id];
         }
 
-        const renderedRow = props.rowRenderer({ id: nodeInfo.id, nodeInfo, style });
+        const renderedRow = props.rowRenderer({ node: nodeInfo.node, nodeInfo, style });
 
         if (props.isModelImmutable) {
             this.rowRenderCache[nodeInfo.id] = renderedRow;
@@ -791,13 +795,13 @@ export default class StickyTree<TNodeType extends StickyTreeNode = StickyTreeNod
      * Returns the parent path from nodes for the specified index within nodes.
      * @param nodeIndex
      * @param topDownOrder if true, the array with index 0 will be the root node, otherwise 0 will be the immediate parent.
-     * @returns {Array<Node>}
+     * @returns {Array<TreeNode>}
      */
     private getParentPath(nodeIndex: number, topDownOrder = true) {
         let currNode = this.nodes[nodeIndex];
         const path = [];
         while (currNode) {
-            currNode = this.nodes[(currNode as StickyTreeParentNodeInfo).parentIndex];
+            currNode = this.nodes[(currNode as EnhancedStickyTreeParentNode<TNodeType>).parentIndex];
             if (currNode) {
                 path.push(currNode);
             }

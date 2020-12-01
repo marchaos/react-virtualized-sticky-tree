@@ -1,13 +1,23 @@
 import React, { useCallback } from 'react';
 import countries from './countries.json';
-import {StickyTreeNode, StickyTreeNodeInfo} from '../src/StickyTree';
+import { StickyTreeProps } from '../src/StickyTree';
 import { AutoSizedStickyTree } from '../src';
 
 const backgroundColors: string[] = ['#45b3e0', '#5bbce4', '#71c5e7', '#87ceeb'];
 
+interface CountriesTreeNode {
+    id: number;
+    name: string;
+    index: number;
+    depth: number;
+    children?: number[];
+}
+
+const countryNodes: CountriesTreeNode[] = countries.map((country) => ({ ...country, id: country.index }));
+const rootNode = countryNodes[0];
+
 const CountriesTree: React.FC<{}> = () => {
-    const rowRenderer = useCallback(({ id, style }) => {
-        const node = countries[id];
+    const rowRenderer = useCallback(({ node, style }) => {
         style = { ...style, backgroundColor: backgroundColors[node.depth] };
 
         return (
@@ -17,21 +27,21 @@ const CountriesTree: React.FC<{}> = () => {
         );
     }, []);
 
-    const getChildren = useCallback((id, nodeInfo: StickyTreeNodeInfo): StickyTreeNode[] | undefined => {
-        if (countries[id].children) {
-            return countries[id].children?.map((childId) => ({
-                id: childId,
-                isSticky: !!countries[childId].children,
-                stickyTop: 30 * countries[childId].depth,
-                zIndex: 4 - countries[childId].depth,
+    const getChildren: StickyTreeProps<CountriesTreeNode>['getChildren'] = useCallback((node, nodeInfo) => {
+        if (node.children) {
+            return node.children?.map((childId) => ({
+                isSticky: !!countryNodes[childId].children,
+                stickyTop: 30 * countryNodes[childId].depth,
+                zIndex: 4 - countryNodes[childId].depth,
+                node: countryNodes[childId],
             }));
         }
     }, []);
 
     return (
-        <AutoSizedStickyTree
+        <AutoSizedStickyTree<CountriesTreeNode>
             className="sticky-tree-wrapper"
-            root={{ id: 0, isSticky: true, stickyTop: 0, zIndex: 4 }}
+            root={{ isSticky: true, stickyTop: 0, zIndex: 4, node: rootNode }}
             renderRoot={true}
             rowHeight={30}
             rowRenderer={rowRenderer}
