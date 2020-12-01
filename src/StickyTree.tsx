@@ -41,7 +41,34 @@ export interface EnhancedStickyTreeParentNode<TNodeType extends TreeNode = TreeN
     children: number[];
 }
 
-export type EnhancedStickyTreeNode<TNodeType extends TreeNode = TreeNode> = EnhancedStickyTreeLeafNode<TNodeType> | EnhancedStickyTreeParentNode<TNodeType>;
+export type EnhancedStickyTreeNode<TNodeType extends TreeNode = TreeNode> =
+    | EnhancedStickyTreeLeafNode<TNodeType>
+    | EnhancedStickyTreeParentNode<TNodeType>;
+
+// Props callbacks
+
+export type StickyTreeGetChildren<TNodeType extends TreeNode = TreeNode> = (
+    node: TNodeType,
+    nodeInfo: EnhancedStickyTreeNode<TNodeType>
+) => StickyTreeNode<TNodeType>[] | undefined;
+
+export type StickyTreeRowRenderer<TNodeType extends TreeNode = TreeNode> = (renderInfo: {
+    node: TNodeType;
+    nodeInfo: EnhancedStickyTreeNode<TNodeType>;
+    style: React.CSSProperties;
+}) => React.ReactElement;
+
+export type StickyTreeOnScroll = (scrollInfo: { scrollTop: number; scrollLeft: number; scrollReason: ScrollReason }) => void;
+
+export type StickyTreeOnRowsRendered<TNodeType extends TreeNode = TreeNode> = (renderInfo: {
+    overscanStartIndex: number;
+    overscanStopIndex: number;
+    startIndex: number;
+    stopIndex: number;
+    startNode?: EnhancedStickyTreeNode<TNodeType>;
+    endNode?: EnhancedStickyTreeNode<TNodeType>;
+    nodes: EnhancedStickyTreeNode<TNodeType>[];
+}) => void;
 
 export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode> {
     /**
@@ -63,7 +90,7 @@ export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode> {
      *    }))
      * }
      */
-    getChildren: (node: TNodeType, nodeInfo: EnhancedStickyTreeNode<TNodeType>) => StickyTreeNode<TNodeType>[] | undefined;
+    getChildren: StickyTreeGetChildren<TNodeType>;
 
     /**
      * Called to retrieve a row to render. The function should return a single React node.
@@ -75,7 +102,7 @@ export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode> {
      *
      * The id is the id from either the root property passed to the tree, or one returned in the getChildren call.
      */
-    rowRenderer: (renderInfo: { node: TNodeType; nodeInfo: EnhancedStickyTreeNode<TNodeType>; style: React.CSSProperties }) => React.ReactElement;
+    rowRenderer: StickyTreeRowRenderer<TNodeType>;
 
     /**
      * An object which represents the root node in the form:
@@ -124,20 +151,12 @@ export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode> {
     /**
      * Called whenever the scrollTop position changes.
      */
-    onScroll?: (scrollInfo: { scrollTop: number; scrollLeft: number; scrollReason: ScrollReason }) => void;
+    onScroll?: StickyTreeOnScroll;
 
     /**
      * Called to indicate that a new render range for rows has been rendered.
      */
-    onRowsRendered?: (renderInfo: {
-        overscanStartIndex: number;
-        overscanStopIndex: number;
-        startIndex: number;
-        stopIndex: number;
-        startNode?:  EnhancedStickyTreeNode<TNodeType>;
-        endNode?:  EnhancedStickyTreeNode<TNodeType>;
-        nodes: EnhancedStickyTreeNode<TNodeType>[];
-    }) => void;
+    onRowsRendered?: StickyTreeOnRowsRendered<TNodeType>;
 
     /**
      * Specifies the default row height which will be used if the child or root object do not have a height specified.
@@ -243,7 +262,8 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
     ) {
         const index = nodes.length;
         const height = stickyNode.height !== undefined ? stickyNode.height : props.rowHeight!;
-        const enhancedParentStickyNode = parentIndex !== undefined ? (nodes[parentIndex] as EnhancedStickyTreeParentNode<TNodeType>) : undefined;
+        const enhancedParentStickyNode =
+            parentIndex !== undefined ? (nodes[parentIndex] as EnhancedStickyTreeParentNode<TNodeType>) : undefined;
 
         const { isSticky = false, stickyTop = 0, zIndex = 0, node } = stickyNode;
 
@@ -350,6 +370,10 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
         if (newState.scrollTick === this.state.scrollTick || newState.currNodePos !== this.state.currNodePos) {
             this.storeRenderTree(newProps, newState);
         }
+    }
+
+    getNode(nodeId: NodeId): TNodeType {
+        return this.nodes[this.getNodeIndex(nodeId)]?.node;
     }
 
     /**

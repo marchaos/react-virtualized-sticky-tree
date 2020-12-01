@@ -1,6 +1,6 @@
-import React, { useCallback } from 'react';
+import React, {useCallback, useMemo} from 'react';
 import countries from './countries.json';
-import { StickyTreeProps } from '../src/StickyTree';
+import { StickyTreeGetChildren, StickyTreeRowRenderer } from '../src/StickyTree';
 import { AutoSizedStickyTree } from '../src';
 
 const backgroundColors: string[] = ['#45b3e0', '#5bbce4', '#71c5e7', '#87ceeb'];
@@ -16,8 +16,8 @@ interface CountriesTreeNode {
 const countryNodes: CountriesTreeNode[] = countries.map((country) => ({ ...country, id: country.index }));
 const rootNode = countryNodes[0];
 
-const CountriesTree: React.FC<{}> = () => {
-    const rowRenderer = useCallback(({ node, style }) => {
+const CountriesTree: React.FC = () => {
+    const rowRenderer: StickyTreeRowRenderer<CountriesTreeNode> = useCallback(({ node, style }) => {
         style = { ...style, backgroundColor: backgroundColors[node.depth] };
 
         return (
@@ -27,7 +27,7 @@ const CountriesTree: React.FC<{}> = () => {
         );
     }, []);
 
-    const getChildren: StickyTreeProps<CountriesTreeNode>['getChildren'] = useCallback((node, nodeInfo) => {
+    const getChildren: StickyTreeGetChildren<CountriesTreeNode> = useCallback((node, nodeInfo) => {
         if (node.children) {
             return node.children?.map((childId) => ({
                 isSticky: !!countryNodes[childId].children,
@@ -38,10 +38,12 @@ const CountriesTree: React.FC<{}> = () => {
         }
     }, []);
 
+    const root = useMemo(() => ({ isSticky: true, stickyTop: 0, zIndex: 4, node: rootNode }), []);
+
     return (
         <AutoSizedStickyTree<CountriesTreeNode>
             className="sticky-tree-wrapper"
-            root={{ isSticky: true, stickyTop: 0, zIndex: 4, node: rootNode }}
+            root={root}
             renderRoot={true}
             rowHeight={30}
             rowRenderer={rowRenderer}

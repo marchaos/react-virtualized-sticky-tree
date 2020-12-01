@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
 import countries from './countries.json';
 import AutoSizedStickyList from '../src/AutoSizedStickyList';
-import { StickyListProps } from '../src/StickyList';
+import { StickyTreeRowRenderer } from '../src/StickyTree';
 
-export interface City {
+export interface CityTreeNode {
     id: number;
     name: string;
     depth: number;
@@ -12,7 +12,7 @@ export interface City {
 const cities = countries.filter((node) => node.depth === 3).map((city, index) => ({ id: index, ...city }));
 
 const CitiesList: React.FC = () => {
-    const rowRenderer: StickyListProps<City>['rowRenderer'] = useCallback(({ node, style }) => {
+    const rowRenderer: StickyTreeRowRenderer<CityTreeNode> = useCallback(({ node, style }) => {
         style = { ...style, backgroundColor: '#87ceeb' };
 
         return (
@@ -23,7 +23,7 @@ const CitiesList: React.FC = () => {
     }, []);
 
     return (
-        <AutoSizedStickyList<City>
+        <AutoSizedStickyList<CityTreeNode>
             className="sticky-tree-wrapper"
             rowHeight={30}
             rowRenderer={rowRenderer}

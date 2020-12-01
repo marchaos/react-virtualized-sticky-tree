@@ -9,7 +9,10 @@ export interface StickyListProps<TNodeType extends TreeNode = TreeNode> extends 
     treeRef?: React.Ref<StickyTree<TNodeType>>;
 }
 
+
 export default class StickyList<TNodeType extends TreeNode = TreeNode> extends React.PureComponent<StickyListProps<TNodeType>> {
+    private root = { node: { id: 'root' } } as StickyTreeNode<TNodeType>;
+
     getChildren: StickyTreeProps<TNodeType>['getChildren'] = (node) => {
         const { items, getHeight } = this.props;
         if (node.id === 'root') {
@@ -27,7 +30,7 @@ export default class StickyList<TNodeType extends TreeNode = TreeNode> extends R
                 ref={treeRef}
                 getChildren={this.getChildren}
                 renderRoot={false}
-                root={{ node: { id: 'root' } } as StickyTreeNode<TNodeType>}
+                root={this.root}
                 rowRenderer={rowRenderer}
                 width={width}
                 height={height}
