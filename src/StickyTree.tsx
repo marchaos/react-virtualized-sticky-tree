@@ -58,7 +58,9 @@ export interface StickyTreeRowRendererProps<TNodeType extends TreeNode = TreeNod
     style: React.CSSProperties;
 }
 
-export type StickyTreeRowRenderer<TNodeType extends TreeNode = TreeNode> = (props: StickyTreeRowRendererProps<TNodeType>) => React.ReactElement;
+export type StickyTreeRowRenderer<TNodeType extends TreeNode = TreeNode> = (
+    props: StickyTreeRowRendererProps<TNodeType>
+) => React.ReactElement;
 
 export type StickyTreeOnScroll = (scrollInfo: { scrollTop: number; scrollLeft: number; scrollReason: ScrollReason }) => void;
 
@@ -783,7 +785,9 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
             return this.rowRenderCache[nodeInfo.id];
         }
 
-        const renderedRow = props.rowRenderer({ node: nodeInfo.node, nodeInfo, style });
+        const RowRenderer = props.rowRenderer;
+
+        const renderedRow = <RowRenderer key={nodeInfo.node.id} node={nodeInfo.node} nodeInfo={nodeInfo} style={style} />;
 
         if (props.isModelImmutable) {
             this.rowRenderCache[nodeInfo.id] = renderedRow;
