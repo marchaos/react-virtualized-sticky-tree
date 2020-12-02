@@ -894,7 +894,7 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
     }
 
     private onScroll(e: React.UIEvent<HTMLElement>) {
-        const { scrollTop, scrollLeft } = e.currentTarget;
+        const { scrollTop, scrollLeft } = e.target as HTMLDivElement;
 
         const scrollReason = this.state.scrollReason || ScrollReason.OBSERVED;
 
