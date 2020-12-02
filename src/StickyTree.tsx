@@ -52,11 +52,13 @@ export type StickyTreeGetChildren<TNodeType extends TreeNode = TreeNode> = (
     nodeInfo: EnhancedStickyTreeNode<TNodeType>
 ) => StickyTreeNode<TNodeType>[] | undefined;
 
-export type StickyTreeRowRenderer<TNodeType extends TreeNode = TreeNode> = (renderInfo: {
+export interface StickyTreeRowRendererProps<TNodeType extends TreeNode = TreeNode> {
     node: TNodeType;
     nodeInfo: EnhancedStickyTreeNode<TNodeType>;
     style: React.CSSProperties;
-}) => React.ReactElement;
+}
+
+export type StickyTreeRowRenderer<TNodeType extends TreeNode = TreeNode> = (props: StickyTreeRowRendererProps<TNodeType>) => React.ReactElement;
 
 export type StickyTreeOnScroll = (scrollInfo: { scrollTop: number; scrollLeft: number; scrollReason: ScrollReason }) => void;
 
