@@ -23,16 +23,18 @@ export interface StickyTreeNode<TNodeType extends TreeNode = TreeNode> {
     stickyTop?: number;
     zIndex?: number;
     node: TNodeType;
+    meta?: any;
 }
 
 export interface EnhancedStickyTreeLeafNode<TNodeType extends TreeNode = TreeNode> extends Required<StickyTreeNode<TNodeType>> {
     id: NodeId;
-    top: number;
     depth: number;
     index: number;
+    top: number;
+    totalHeight: number;
     isFirstChild: boolean;
     isLastChild: boolean;
-    totalHeight: number;
+    isLeafNode: boolean;
 }
 
 export interface EnhancedStickyTreeParentNode<TNodeType extends TreeNode = TreeNode> extends EnhancedStickyTreeLeafNode<TNodeType> {
@@ -278,6 +280,8 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
             zIndex,
             node,
             top: context.totalHeight,
+            isLeafNode: false,
+            meta: stickyNode.meta,
             parentIndex,
             parentInfo: enhancedParentStickyNode,
             depth: enhancedParentStickyNode !== undefined ? enhancedParentStickyNode.depth + 1 : 0,
@@ -328,6 +332,8 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
                 const child = children[i];
                 this.flattenTree(child, props, nodes, i === 0, i === children.length - 1, index, context);
             }
+        } else {
+            enhancedStickyNode.isLeafNode = true;
         }
 
         enhancedStickyNode.totalHeight = context.totalHeight - enhancedStickyNode.top;

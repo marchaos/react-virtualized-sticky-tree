@@ -46,7 +46,6 @@
     "@babel/preset-typescript": "^7.12.7",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
-    "@types/react-measure": "^2.0.6",
     "babel-loader": "^8.2.1",
     "chai": "^3.5.0",
     "chai-enzyme": "^0.8.0",
@@ -71,6 +70,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "react-measure": "^2.5.2"
+    "react-measure": "^2.5.2",
+    "@types/react-measure": "^2.0.6"
   }
 }
