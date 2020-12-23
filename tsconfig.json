@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "target": "es2017",
+    "module": "commonjs",
+    "declaration": true,
+    "jsx": "react",
+    "outDir": "lib/",
+    "lib": ["es2017", "dom", "esnext"],
+    "strict": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true, // no node_modules checks
+    "strictNullChecks": true,
+    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noUnusedLocals": true,
+    "strictPropertyInitialization": false,
+    "resolveJsonModule": true
+  },
+  "include": ["src/", "example/"]
+}

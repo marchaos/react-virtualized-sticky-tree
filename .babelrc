@@ -1,12 +1,4 @@
 {
-  "env": {
-    "production": {
-      "plugins": [
-        "transform-react-remove-prop-types",
-        "transform-react-constant-elements",
-        "transform-react-inline-elements"
-      ]
-    }
-  },
-  "presets": ["airbnb", "es2015", "stage-0", "react"]
+    "presets": ["@babel/preset-env", "@babel/preset-typescript", "@babel/preset-react"],
+    "plugins": ["@babel/plugin-proposal-class-properties", "@babel/plugin-proposal-export-default-from"]
 }
