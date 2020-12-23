@@ -3,10 +3,10 @@ import Measure, { ContentRect } from 'react-measure';
 import StickyTree, { TreeNode } from './StickyTree';
 import StickyList, { StickyListProps } from './StickyList';
 
-export interface AutoSizedStickyListProps<TNodeType extends TreeNode = TreeNode>
-    extends Omit<StickyListProps<TNodeType>, 'width' | 'height'> {
+export interface AutoSizedStickyListProps<TNodeType extends TreeNode = TreeNode, TMeta = any>
+    extends Omit<StickyListProps<TNodeType, TMeta>, 'width' | 'height'> {
     onResize?: (rect: ContentRect) => void;
-    treeRef?: React.Ref<StickyTree<TNodeType>>;
+    treeRef?: React.Ref<StickyTree<TNodeType, TMeta>>;
     className?: string;
 }
 
@@ -15,11 +15,11 @@ export interface AutoSizedStickyTreeState {
     height: number;
 }
 
-export default class AutoSizedStickyList<TNodeType extends TreeNode = TreeNode> extends React.PureComponent<
-    AutoSizedStickyListProps<TNodeType>,
+export default class AutoSizedStickyList<TNodeType extends TreeNode = TreeNode, TMeta = any> extends React.PureComponent<
+    AutoSizedStickyListProps<TNodeType, TMeta>,
     AutoSizedStickyTreeState
 > {
-    constructor(props: AutoSizedStickyListProps<TNodeType>) {
+    constructor(props: AutoSizedStickyListProps<TNodeType, TMeta>) {
         super(props);
         this.state = {} as AutoSizedStickyTreeState;
     }
@@ -37,7 +37,7 @@ export default class AutoSizedStickyList<TNodeType extends TreeNode = TreeNode> 
             >
                 {({ measureRef }) => (
                     <div ref={measureRef} className={this.props.className}>
-                        <StickyList treeRef={this.props.treeRef} width={this.state.width} height={this.state.height} {...this.props} />
+                        <StickyList<TNodeType, TMeta> treeRef={this.props.treeRef} width={this.state.width} height={this.state.height} {...this.props} />
                     </div>
                 )}
             </Measure>

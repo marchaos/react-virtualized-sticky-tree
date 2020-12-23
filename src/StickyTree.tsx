@@ -54,14 +54,15 @@ export type StickyTreeGetChildren<TNodeType extends TreeNode = TreeNode> = (
     nodeInfo: EnhancedStickyTreeNode<TNodeType>
 ) => StickyTreeNode<TNodeType>[] | undefined;
 
-export interface StickyTreeRowRendererProps<TNodeType extends TreeNode = TreeNode> {
+export interface StickyTreeRowRendererProps<TNodeType extends TreeNode = TreeNode, TMeta = any> {
     node: TNodeType;
     nodeInfo: EnhancedStickyTreeNode<TNodeType>;
     style: React.CSSProperties;
+    meta?: TMeta;
 }
 
-export type StickyTreeRowRenderer<TNodeType extends TreeNode = TreeNode> = (
-    props: StickyTreeRowRendererProps<TNodeType>
+export type StickyTreeRowRenderer<TNodeType extends TreeNode = TreeNode, TMeta = any> = (
+    props: StickyTreeRowRendererProps<TNodeType, TMeta>
 ) => React.ReactElement;
 
 export type StickyTreeOnScroll = (scrollInfo: { scrollTop: number; scrollLeft: number; scrollReason: ScrollReason }) => void;
@@ -76,7 +77,7 @@ export type StickyTreeOnRowsRendered<TNodeType extends TreeNode = TreeNode> = (r
     nodes: EnhancedStickyTreeNode<TNodeType>[];
 }) => void;
 
-export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode> {
+export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode, TMeta = any> {
     /**
      * Returns an array of child objects that represent the children of a particular node.
      * The returned object for each child should be in the form:
@@ -108,7 +109,13 @@ export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode> {
      *
      * The id is the id from either the root property passed to the tree, or one returned in the getChildren call.
      */
-    rowRenderer: StickyTreeRowRenderer<TNodeType>;
+    rowRenderer: StickyTreeRowRenderer<TNodeType, TMeta>;
+
+    /**
+     * Allows for extra props to be passed to the rowRenderer, whilst simultaneously allowing for updates to rows for values that are apart of the model.
+     * For example, selectedRowId, activeRowId etc. Updates to meta will no rebuild the tree, only re-render visible nodes.
+     */
+    meta?: TMeta;
 
     /**
      * An object which represents the root node in the form:
@@ -202,8 +209,8 @@ export interface RowRenderRange {
     visibleEnd: number;
 }
 
-export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends React.PureComponent<
-    StickyTreeProps<TNodeType>,
+export default class StickyTree<TNodeType extends TreeNode = TreeNode, TMeta = any> extends React.PureComponent<
+    StickyTreeProps<TNodeType, TMeta>,
     StickyTreeState
 > {
     static defaultProps = {
@@ -221,7 +228,7 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
     private pendingScrollTop?: number;
     private treeToRender: React.ReactElement;
 
-    constructor(props: StickyTreeProps<TNodeType>) {
+    constructor(props: StickyTreeProps<TNodeType, TMeta>) {
         super(props);
 
         if (this.props.apiRef) {
@@ -793,7 +800,7 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode> extends R
 
         const RowRenderer = props.rowRenderer;
 
-        const renderedRow = <RowRenderer key={nodeInfo.node.id} node={nodeInfo.node} nodeInfo={nodeInfo} style={style} />;
+        const renderedRow = <RowRenderer key={nodeInfo.node.id} node={nodeInfo.node} nodeInfo={nodeInfo} style={style} meta={props.meta} />;
 
         if (props.isModelImmutable) {
             this.rowRenderCache[nodeInfo.id] = renderedRow;

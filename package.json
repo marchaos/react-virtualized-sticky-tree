@@ -1,7 +1,7 @@
 {
   "name": "react-virtualized-sticky-tree",
   "description": "A React component for efficiently rendering tree like structures with support for position: sticky",
-  "version": "3.0.0",
+  "version": "3.0.0-beta10",
   "author": "Marc McIntyre <marchaos@gmail.com>",
   "license": "MIT",
   "main": "lib/src/index.js",

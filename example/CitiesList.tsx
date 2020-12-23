@@ -28,7 +28,6 @@ const CitiesList: React.FC = () => {
             rowHeight={30}
             rowRenderer={rowRenderer}
             items={cities}
-            overscanRowCount={20}
         />
     );
 };

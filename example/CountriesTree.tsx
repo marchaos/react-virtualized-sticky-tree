@@ -48,7 +48,6 @@ const CountriesTree: React.FC = () => {
             rowHeight={30}
             rowRenderer={rowRenderer}
             getChildren={getChildren}
-            overscanRowCount={20}
         />
     );
 };

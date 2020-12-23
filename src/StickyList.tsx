@@ -3,17 +3,17 @@ import StickyTree, { StickyTreeNode, StickyTreeProps, TreeNode } from './StickyT
 
 type OmitProps = 'getChildren' | 'root' | 'renderRoot';
 
-export interface StickyListProps<TNodeType extends TreeNode = TreeNode> extends Omit<StickyTreeProps<TNodeType>, OmitProps> {
+export interface StickyListProps<TNodeType extends TreeNode = TreeNode, TMeta = any> extends Omit<StickyTreeProps<TNodeType, TMeta>, OmitProps> {
     items: TNodeType[];
     getHeight?: (item: TNodeType) => number;
-    treeRef?: React.Ref<StickyTree<TNodeType>>;
+    treeRef?: React.Ref<StickyTree<TNodeType, TMeta>>;
 }
 
 
-export default class StickyList<TNodeType extends TreeNode = TreeNode> extends React.PureComponent<StickyListProps<TNodeType>> {
+export default class StickyList<TNodeType extends TreeNode = TreeNode, TMeta = any> extends React.PureComponent<StickyListProps<TNodeType, TMeta>> {
     private root = { node: { id: 'root' } } as StickyTreeNode<TNodeType>;
 
-    getChildren: StickyTreeProps<TNodeType>['getChildren'] = (node) => {
+    getChildren: StickyTreeProps<TNodeType, TMeta>['getChildren'] = (node) => {
         const { items, getHeight } = this.props;
         if (node.id === 'root') {
             // If they don't specify a getHeight function, they must be using the rowHeight prop.
@@ -26,7 +26,7 @@ export default class StickyList<TNodeType extends TreeNode = TreeNode> extends R
         const { items, rowRenderer, width, height, treeRef, getHeight, ...rest } = this.props;
 
         return (
-            <StickyTree<TNodeType>
+            <StickyTree<TNodeType, TMeta>
                 ref={treeRef}
                 getChildren={this.getChildren}
                 renderRoot={false}
