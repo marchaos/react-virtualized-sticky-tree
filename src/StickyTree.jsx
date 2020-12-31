@@ -743,6 +743,10 @@ export default class StickyTree extends React.PureComponent {
             scrollTop = this.elem.scrollHeight - this.elem.offsetHeight;
         }
 
+        if (scrollTop === this.state.scrollTop) {
+            return;
+        }
+
         let pos;
         if (scrollTop > this.state.scrollTop || currNodePos === 0) {
             pos = this.forwardSearch(scrollTop, currNodePos);
