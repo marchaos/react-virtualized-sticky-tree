@@ -798,9 +798,7 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode, TMeta = a
             return this.rowRenderCache[nodeInfo.id];
         }
 
-        const RowRenderer = props.rowRenderer;
-
-        const renderedRow = <RowRenderer key={nodeInfo.node.id} node={nodeInfo.node} nodeInfo={nodeInfo} style={style} meta={props.meta} />;
+        const renderedRow = props.rowRenderer({ node: nodeInfo.node, nodeInfo, style, meta: props.meta });
 
         if (props.isModelImmutable) {
             this.rowRenderCache[nodeInfo.id] = renderedRow;
