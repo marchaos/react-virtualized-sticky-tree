@@ -896,6 +896,10 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode, TMeta = a
             scrollTop = this.elemRef.current.scrollHeight - this.elemRef.current.offsetHeight;
         }
 
+        if (scrollTop === this.state.scrollTop) {
+            return;
+        }
+
         let pos;
         if (scrollTop > this.state.scrollTop || currNodePos === 0) {
             pos = this.forwardSearch(scrollTop, currNodePos);
