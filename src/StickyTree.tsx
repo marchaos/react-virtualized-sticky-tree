@@ -145,6 +145,11 @@ export interface StickyTreeProps<TNodeType extends TreeNode = TreeNode, TMeta = 
     width: number;
 
     /**
+     * if false, then the width and height are not set as inline styles on the sticky tree element.
+     */
+    inlineWidthHeight?: boolean;
+
+    /**
      * if true, the root node will be rendered (by calling rowRenderer() for the root id). Otherwise no root node will be rendered.
      */
     renderRoot?: boolean;
@@ -930,11 +935,13 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode, TMeta = a
 
     render() {
         let style: React.CSSProperties = { overflow: 'auto', position: 'relative' };
-        if (this.props.width) {
-            style.width = this.props.width;
-        }
-        if (this.props.height) {
-            style.height = this.props.height;
+        if (this.props.inlineWidthHeight !== false) {
+            if (this.props.width) {
+                style.width = this.props.width;
+            }
+            if (this.props.height) {
+                style.height = this.props.height;
+            }
         }
 
         return (
