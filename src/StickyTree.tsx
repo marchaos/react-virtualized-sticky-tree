@@ -220,6 +220,7 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode, TMeta = a
 > {
     static defaultProps = {
         overscanRowCount: 10,
+        inlineWidthHeight: true,
         renderRoot: true,
         wrapAllLeafNodes: false,
         isModelImmutable: false,
