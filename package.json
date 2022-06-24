@@ -65,7 +65,7 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^5.0.0",
     "eslint-plugin-react": "^7.0.0",
-    "jsdom": "10.1.0",
+    "jsdom": "16.5.0",
     "jsdom-global": "latest",
     "json-loader": "^0.5.4",
     "mocha": "^3.4.2",
