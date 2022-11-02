@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Measure, { ContentRect } from 'react-measure';
 import StickyTree, { TreeNode } from './StickyTree';
 import StickyList, { StickyListProps } from './StickyList';
@@ -10,37 +10,36 @@ export interface AutoSizedStickyListProps<TNodeType extends TreeNode = TreeNode,
     className?: string;
 }
 
-export interface AutoSizedStickyTreeState {
+interface Bounds {
     width: number;
     height: number;
 }
 
-export default class AutoSizedStickyList<TNodeType extends TreeNode = TreeNode, TMeta = any> extends React.PureComponent<
-    AutoSizedStickyListProps<TNodeType, TMeta>,
-    AutoSizedStickyTreeState
-> {
-    constructor(props: AutoSizedStickyListProps<TNodeType, TMeta>) {
-        super(props);
-        this.state = {} as AutoSizedStickyTreeState;
-    }
+const AutoSizedStickyList = <TNodeType extends TreeNode = TreeNode, TMeta = any>({
+    onResize,
+    className,
+    treeRef,
+    ...rest
+}: AutoSizedStickyListProps<TNodeType, TMeta>) => {
+    const [bounds, setBounds] = useState<Bounds>({} as Bounds);
 
-    render() {
-        return (
-            <Measure
-                bounds={true}
-                onResize={(rect) => {
-                    this.setState({ width: rect.bounds!.width, height: rect.bounds!.height });
-                    if (this.props.onResize !== undefined) {
-                        this.props.onResize(rect);
-                    }
-                }}
-            >
-                {({ measureRef }) => (
-                    <div ref={measureRef} className={this.props.className}>
-                        <StickyList<TNodeType, TMeta> treeRef={this.props.treeRef} width={this.state.width} height={this.state.height} {...this.props} />
-                    </div>
-                )}
-            </Measure>
-        );
-    }
-}
+    return (
+        <Measure
+            bounds={true}
+            onResize={(rect) => {
+                setBounds({ width: rect.bounds!.width, height: rect.bounds!.height });
+                if (onResize !== undefined) {
+                    onResize(rect);
+                }
+            }}
+        >
+            {({ measureRef }) => (
+                <div ref={measureRef} className={className}>
+                    <StickyList<TNodeType, TMeta> treeRef={treeRef} width={bounds.width} height={bounds.height} {...rest} />
+                </div>
+            )}
+        </Measure>
+    );
+};
+
+export default AutoSizedStickyList;

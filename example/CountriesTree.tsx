@@ -1,6 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import React, { useCallback, useMemo } from 'react';
 import countries from './countries.json';
-import { StickyTreeGetChildren, StickyTreeRowRenderer } from '../src/StickyTree';
+import { StickyTreeGetChildren, StickyTreeRowRenderer } from '../src';
 import { AutoSizedStickyTree } from '../src';
 
 const backgroundColors: string[] = ['#45b3e0', '#5bbce4', '#71c5e7', '#87ceeb'];
@@ -21,7 +21,7 @@ const CountriesTree: React.FC = () => {
         style = { ...style, backgroundColor: backgroundColors[node.depth] };
 
         return (
-            <div className="node-row" style={style}>
+            <div className="node-row" key={node.id} style={style}>
                 {node.name}
             </div>
         );

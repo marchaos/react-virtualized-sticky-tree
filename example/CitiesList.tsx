@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import countries from './countries.json';
-import AutoSizedStickyList from '../src/AutoSizedStickyList';
-import { StickyTreeRowRenderer } from '../src/StickyTree';
+import { AutoSizedStickyList } from '../src/';
+import { StickyTreeRowRenderer } from '../src';
 
 export interface CityTreeNode {
     id: number;
@@ -16,16 +16,20 @@ const CitiesList: React.FC = () => {
         style = { ...style, backgroundColor: '#87ceeb' };
 
         return (
-            <div className="node-row" style={style}>
+            <div className="node-row" style={style} key={node.id}>
                 {node.name}
             </div>
         );
     }, []);
 
+    const getRowHeight = useCallback((node: CityTreeNode) => {
+        return 30;
+    }, []);
+
     return (
         <AutoSizedStickyList<CityTreeNode>
             className="sticky-tree-wrapper"
-            rowHeight={30}
+            getRowHeight={getRowHeight}
             rowRenderer={rowRenderer}
             items={cities}
         />
