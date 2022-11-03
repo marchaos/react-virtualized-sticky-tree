@@ -3,6 +3,8 @@ import StickyTree, { StickyTreeNode, StickyTreeProps, TreeNode } from './StickyT
 
 type OmitProps = 'getChildren' | 'root' | 'renderRoot';
 
+export type StickyListNode = TreeNode & Pick<StickyTreeNode, 'zIndex' | 'isSticky' | 'stickyTop' | 'height'>;
+
 export interface StickyListProps<TNodeType extends TreeNode = TreeNode, TMeta = any>
     extends Omit<StickyTreeProps<TNodeType, TMeta>, OmitProps> {
     items: TNodeType[];
@@ -10,7 +12,7 @@ export interface StickyListProps<TNodeType extends TreeNode = TreeNode, TMeta = 
     treeRef?: React.Ref<StickyTree<TNodeType, TMeta>>;
 }
 
-const StickyList = <TNodeType extends TreeNode = TreeNode, TMeta = any>({
+const StickyList = <TNodeType extends StickyListNode = StickyListNode, TMeta = any>({
     items,
     rowRenderer,
     width,
@@ -25,8 +27,14 @@ const StickyList = <TNodeType extends TreeNode = TreeNode, TMeta = any>({
     const getChildren: StickyTreeProps<TNodeType, TMeta>['getChildren'] = useCallback(
         (node) => {
             if (node.id === 'root') {
-                // If they don't specify a getHeight function, they must be using the rowHeight prop.
-                return items.map((item) => ({ node: item, height: getRowHeight ? getRowHeight(item) : undefined }));
+                return items.map((item) => ({
+                    node: item,
+                    // If they don't specify a getHeight function, they must be using either a height on the node or the rowHeight prop to StickyList.
+                    height: getRowHeight ? getRowHeight(item) : item.height,
+                    isSticky: item.isSticky,
+                    stickyTop: item.stickyTop,
+                    zIndex: item.zIndex,
+                }));
             }
             return undefined;
         },
