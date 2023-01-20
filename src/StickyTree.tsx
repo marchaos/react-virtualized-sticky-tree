@@ -559,12 +559,31 @@ export default class StickyTree<TNodeType extends TreeNode = TreeNode, TMeta = a
     }
 
     /**
+     * Returns the scrollLeft of the scrollable element
+     *
+     * @return returns -1 if the elem does not exist.
+     */
+    getScrollLeft() {
+        return this.elemRef.current ? this.elemRef.current.scrollLeft : -1;
+    }
+
+    /**
      * Sets the scrollTop position of the scrollable element.
      * @param scrollTop
      */
     setScrollTop(scrollTop: number) {
         if (!isNaN(scrollTop)) {
             this.setScrollTopAndClosestNode(scrollTop, this.state.currNodePos, ScrollReason.REQUESTED);
+        }
+    }
+
+    /**
+     * Sets the scrollLeft position of the scrollable element.
+     * @param scrollLeft
+     */
+    setScrollLeft(scrollLeft: number) {
+        if (!isNaN(scrollLeft) && this.elemRef.current) {
+            this.elemRef.current.scrollLeft = scrollLeft;
         }
     }
 
