@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "target": "es2022",
+    "declaration": true,
+    "jsx": "react",
+    "lib": ["es2022", "dom", "esnext"],
+    "strict": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true, // no node_modules checks
+    "strictNullChecks": true,
+    "alwaysStrict": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noUnusedLocals": true,
+    "strictPropertyInitialization": false,
+    "resolveJsonModule": true
+  },
+  "compileOnSave": false,
+  "exclude": ["node_modules", "dist"],
+  "include": ["src/", "example/"]
+}

@@ -1,11 +1,17 @@
 {
   "name": "react-virtualized-sticky-tree",
   "description": "A React component for efficiently rendering tree like structures with support for position: sticky",
-  "version": "3.0.0-beta15",
+  "version": "3.0.0-beta16",
   "author": "Marc McIntyre <marchaos@gmail.com>",
   "license": "MIT",
-  "main": "lib/src/index.js",
-  "types": "lib/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/mjs/src/index.js",
+      "require": "./dist/cjs/src/index.js"
+    }
+  },
+  "main": "dist/cjs/src/index.js",
+  "module": "dist/mjs/src/index.js",
   "homepage": "https://github.com/marchaos/react-virtualized-sticky-tree#readme",
   "repository": {
     "type": "git",
@@ -20,16 +26,13 @@
     "sticky"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run clean && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup.sh",
     "start": "webpack serve --config ./webpack.config.js",
     "prepublish": "npm run build",
-    "clean": "rimraf lib",
+    "clean": "rimraf dist",
     "test": "npx cypress run",
     "prepare": "npm run build"
   },
-  "files": [
-    "lib/src/**/*"
-  ],
   "bugs": {
     "url": "https://github.com/marchaos/react-virtualized-sticky-tree/issues"
   },
@@ -55,8 +58,8 @@
     "html-webpack-plugin": "^4.5.0",
     "json-loader": "^0.5.4",
     "prettier": "^2.2.1",
-    "react":  "^18.2.0",
-    "react-dom":  "^18.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "rimraf": "^3.0.2",
     "testdouble": "^1.8.0",
     "typescript": "^4.8.4",
