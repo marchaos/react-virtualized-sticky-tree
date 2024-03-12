@@ -1,8 +1,8 @@
-export { default as StickyTree } from './StickyTree';
-export * from './StickyTree';
-export { default as AutoSizedStickyTree } from './AutoSizedStickyTree';
-export * from './AutoSizedStickyTree';
-export * from './StickyList';
-export { default as StickyList } from './StickyList';
-export * from './AutoSizedStickyList';
-export { default as AutoSizedStickyList } from './AutoSizedStickyList';
+export { default as StickyTree } from './StickyTree.js';
+export * from './StickyTree.js';
+export { default as AutoSizedStickyTree } from './AutoSizedStickyTree.js';
+export * from './AutoSizedStickyTree.js';
+export * from './StickyList.js';
+export { default as StickyList } from './StickyList.js';
+export * from './AutoSizedStickyList.js';
+export { default as AutoSizedStickyList } from './AutoSizedStickyList.js';

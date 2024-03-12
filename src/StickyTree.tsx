@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import vendorSticky from './vendorSticky';
+import vendorSticky from './vendorSticky.js';
 
 export enum ScrollReason {
     OBSERVED = 'observed',

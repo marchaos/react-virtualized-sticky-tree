@@ -1,6 +1,6 @@
 import React from 'react';
 import Measure, { ContentRect } from 'react-measure';
-import StickyTree, { StickyTreeProps, TreeNode } from './StickyTree';
+import StickyTree, { StickyTreeProps, TreeNode } from './StickyTree.js';
 
 export interface AutoSizedStickyTreeProps<TNodeType extends TreeNode = TreeNode, TMeta = any>
     extends Omit<StickyTreeProps<TNodeType, TMeta>, 'width' | 'height'> {

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import StickyTree, { StickyTreeNode, StickyTreeProps, TreeNode } from './StickyTree';
+import StickyTree, { StickyTreeNode, StickyTreeProps, TreeNode } from './StickyTree.js';
 
 type OmitProps = 'getChildren' | 'root' | 'renderRoot';
 

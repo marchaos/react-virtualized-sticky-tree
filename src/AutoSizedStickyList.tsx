@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Measure, { ContentRect } from 'react-measure';
-import StickyTree, { TreeNode } from './StickyTree';
-import StickyList, { StickyListProps } from './StickyList';
+import StickyTree, { TreeNode } from './StickyTree.js';
+import StickyList, { StickyListProps } from './StickyList.js';
 
 export interface AutoSizedStickyListProps<TNodeType extends TreeNode = TreeNode, TMeta = any>
     extends Omit<StickyListProps<TNodeType, TMeta>, 'width' | 'height'> {
